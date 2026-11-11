@@ -1,0 +1,5318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#081310">
+  <meta name="description" content="Red Horizon: a six-sol interactive STEM game about balancing temperature, light, water, and energy in a Mars greenhouse.">
+  <title>Red Horizon | Balanced Mars Greenhouse</title>
+  <style>
+    :root {
+      --bg: #07110f;
+      --panel: #0d211d;
+      --panel-2: #112b25;
+      --panel-3: #17372f;
+      --line: rgba(176, 221, 203, 0.16);
+      --line-strong: rgba(176, 221, 203, 0.3);
+      --text: #f0f7f3;
+      --muted: #9fb6ac;
+      --mint: #78e3b6;
+      --mint-dark: #143d31;
+      --solar: #f5cc70;
+      --sky: #7dd2ff;
+      --rust: #e9855f;
+      --danger: #ff8779;
+      --white: #ffffff;
+      --shadow: 0 26px 74px rgba(0, 0, 0, 0.42);
+      --radius-xl: 28px;
+      --radius-lg: 19px;
+      --font: "Avenir Next", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 80% -5%, rgba(233, 133, 95, 0.18), transparent 34rem),
+        radial-gradient(circle at 2% 24%, rgba(120, 227, 182, 0.1), transparent 32rem),
+        linear-gradient(145deg, #06100e 0%, #0a1714 48%, #101d1a 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.16;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, #000, transparent 78%);
+    }
+
+    button,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button,
+    label,
+    input[type="range"] {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(120, 227, 182, 0.72);
+      outline-offset: 3px;
+    }
+
+    .page {
+      position: relative;
+      width: min(calc(100% - 32px), 1260px);
+      margin: 0 auto;
+      padding: 20px 0 54px;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      text-align: left;
+      background: transparent;
+    }
+
+    .brand-mark {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(120, 227, 182, 0.4);
+      border-radius: 50%;
+      background: linear-gradient(145deg, rgba(120,227,182,0.18), rgba(233,133,95,0.12));
+      color: var(--mint);
+      box-shadow: inset 0 0 20px rgba(120, 227, 182, 0.08);
+    }
+
+    .brand-mark svg {
+      width: 23px;
+      height: 23px;
+    }
+
+    .brand-eyebrow,
+    .eyebrow {
+      margin: 0;
+      color: var(--mint);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .brand-name {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.98rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(12, 30, 26, 0.78);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 0 4px rgba(120, 227, 182, 0.1);
+    }
+
+    .button {
+      appearance: none;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 17px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(21, 46, 39, 0.94);
+      color: var(--text);
+      font-size: 0.83rem;
+      font-weight: 760;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, opacity 160ms ease;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(29, 60, 51, 0.98);
+    }
+
+    .button.primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, #9af3cf, #67d9ad);
+      color: #06241b;
+      box-shadow: 0 14px 32px -16px rgba(120, 227, 182, 0.85);
+    }
+
+    .button.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #adf8d8, #78e5b9);
+    }
+
+    .button.ghost {
+      background: transparent;
+    }
+
+    .button.small {
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 0.72rem;
+    }
+
+    .button:disabled {
+      opacity: 0.38;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: rise 380ms cubic-bezier(.2,.78,.2,1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
+      gap: 16px;
+      min-height: calc(100vh - 122px);
+    }
+
+    .hero-visual,
+    .hero-copy,
+    .panel-shell {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(12, 30, 26, 0.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 610px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 78%, rgba(233, 133, 95, 0.27), transparent 30%),
+        linear-gradient(180deg, #142b3a 0%, #142823 38%, #38251c 100%);
+    }
+
+    .hero-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(4,12,10,0.52), transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-visual svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: brightness(1.16) saturate(1.12);
+    }
+
+    .hero-copy {
+      padding: clamp(28px, 4vw, 52px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 26px;
+    }
+
+    .hero-copy h1 {
+      margin: 12px 0 16px;
+      font-size: clamp(2.4rem, 4.7vw, 4.25rem);
+      line-height: 0.97;
+      letter-spacing: -0.058em;
+    }
+
+    .hero-copy .lead {
+      margin: 0;
+      color: #c1d2ca;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .hero-message {
+      position: absolute;
+      z-index: 2;
+      left: 24px;
+      right: 24px;
+      bottom: 23px;
+      max-width: 540px;
+    }
+
+    .hero-message h2 {
+      margin: 8px 0 9px;
+      max-width: 500px;
+      font-size: clamp(2.25rem, 4.3vw, 4.4rem);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+    }
+
+    .hero-message p {
+      margin: 0;
+      max-width: 470px;
+      color: #c8d7d0;
+      font-size: 0.88rem;
+      line-height: 1.58;
+      text-shadow: 0 2px 12px rgba(0,0,0,.55);
+    }
+
+    .learning-loop {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 25px 0;
+    }
+
+    .loop-step {
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .loop-step strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.84rem;
+    }
+
+    .loop-step span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.69rem;
+      line-height: 1.45;
+    }
+
+    .theme-line {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: #d5e5dd;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .theme-line b {
+      color: var(--mint);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-heading {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: -0.025em;
+    }
+
+    .section-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    /* Cargo loadout */
+    .loadout {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(10, 26, 22, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .loadout-head {
+      padding: clamp(26px, 4vw, 48px);
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 90% 12%, rgba(245, 204, 112, 0.12), transparent 24rem),
+        linear-gradient(135deg, rgba(26, 55, 47, 0.78), rgba(11, 29, 25, 0.9));
+    }
+
+    .loadout-head h1 {
+      margin: 8px 0 10px;
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+
+    .loadout-head p {
+      max-width: 780px;
+      margin: 0;
+      color: #b9ccc3;
+      font-size: 0.9rem;
+      line-height: 1.62;
+    }
+
+    .loadout-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(330px, 0.8fr);
+      gap: 26px;
+      padding: clamp(22px, 4vw, 40px);
+    }
+
+    .cargo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .cargo-card {
+      appearance: none;
+      position: relative;
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 17px;
+      border: 1px solid rgba(120, 227, 182, 0.34);
+      border-radius: 16px;
+      background:
+        linear-gradient(145deg, rgba(33, 77, 63, 0.82), rgba(15, 43, 35, 0.92));
+      color: var(--text);
+      text-align: left;
+      box-shadow: 0 12px 28px -24px rgba(0,0,0,.8);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .cargo-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(120, 227, 182, 0.8);
+      background:
+        linear-gradient(145deg, rgba(43, 99, 80, 0.9), rgba(18, 53, 43, 0.96));
+      box-shadow: 0 18px 34px -24px rgba(0,0,0,.92);
+    }
+
+    .cargo-card.selected {
+      border-color: rgba(120, 227, 182, 0.78);
+      background: linear-gradient(145deg, rgba(65, 145, 113, 0.28), rgba(22, 61, 49, 0.66));
+      box-shadow: inset 0 0 0 1px rgba(120,227,182,0.08);
+    }
+
+    .equipment-mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(120, 227, 182, 0.17);
+      color: var(--mint);
+      font-size: 0.76rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+    }
+
+    .cargo-card h3 {
+      margin: 13px 0 5px;
+      font-size: 0.87rem;
+    }
+
+    .cargo-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1.48;
+    }
+
+    .cargo-card small {
+      margin-top: 11px;
+      padding-top: 12px;
+      color: #cfe1d8;
+      font-size: 0.7rem;
+      line-height: 1.4;
+    }
+
+    .cargo-action {
+      width: 100%;
+      min-height: 37px;
+      margin-top: auto;
+      padding: 8px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(120, 227, 182, 0.3);
+      border-radius: 10px;
+      background: rgba(120, 227, 182, 0.1);
+      color: var(--mint);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .cargo-card.selected .cargo-action {
+      border-color: transparent;
+      background: var(--mint);
+      color: #09231a;
+    }
+
+    .cargo-side {
+      position: relative;
+      padding: 18px;
+      border: 1px solid rgba(245, 204, 112, 0.38);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(57, 100, 69, 0.3), rgba(17, 49, 39, 0.86)),
+        rgba(14, 34, 29, 0.9);
+      box-shadow:
+        inset 0 0 0 1px rgba(245,204,112,0.05),
+        0 18px 34px -26px rgba(0,0,0,.9);
+    }
+
+    .cargo-side::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      bottom: 20px;
+      left: -1px;
+      width: 3px;
+      border-radius: 0 4px 4px 0;
+      background: linear-gradient(var(--solar), var(--mint));
+    }
+
+    .cargo-side .section-heading {
+      font-size: 1.08rem;
+    }
+
+    .slot-list {
+      display: grid;
+      gap: 9px;
+      margin: 15px 0 18px;
+    }
+
+    .cargo-slot {
+      min-height: 67px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px dashed rgba(245, 204, 112, 0.44);
+      border-radius: 13px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.035);
+      font-size: 0.73rem;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .cargo-slot.filled {
+      border-style: solid;
+      border-color: rgba(120, 227, 182, 0.66);
+      color: var(--text);
+      background: rgba(120, 227, 182, 0.11);
+    }
+
+    .cargo-slot.dragover {
+      border-color: var(--solar);
+      background: rgba(245, 204, 112, 0.08);
+    }
+
+    .slot-number {
+      width: 31px;
+      height: 31px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      color: var(--solar);
+      font-size: 0.65rem;
+      font-weight: 800;
+    }
+
+    .slot-copy strong {
+      display: block;
+      font-size: 0.73rem;
+    }
+
+    .slot-copy span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.64rem;
+    }
+
+    .loadout-note {
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1.55;
+    }
+
+    /* Game */
+    .game-shell {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(8, 23, 19, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .game-head {
+      min-height: 70px;
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(11, 28, 24, 0.86);
+    }
+
+    .game-head h2 {
+      margin: 3px 0 0;
+      font-size: 1.22rem;
+      letter-spacing: -0.02em;
+    }
+
+    .sol-track {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sol-dot {
+      width: 27px;
+      height: 7px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.09);
+    }
+
+    .sol-dot::after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--mint);
+      border-radius: inherit;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 260ms ease;
+    }
+
+    .sol-dot.done::after,
+    .sol-dot.current::after {
+      transform: scaleX(1);
+    }
+
+    .sol-dot.current::after {
+      background: var(--solar);
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(500px, 0.94fr) minmax(510px, 1.06fr);
+      min-height: 710px;
+    }
+
+    .scene-pane {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 75% 25%, rgba(125,210,255,0.12), transparent 13rem),
+        linear-gradient(180deg, #142b38 0%, #142823 39%, #3e261c 100%);
+    }
+
+    .scene-visual {
+      position: relative;
+      min-height: 560px;
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
+
+    .scene-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: brightness(1.16) saturate(1.12);
+    }
+
+    .scene-shade {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 48%, transparent 35%, rgba(2,9,7,0.18) 100%),
+        linear-gradient(to top, rgba(2,9,7,0.58), transparent 50%);
+    }
+
+    .starfield circle {
+      animation: star-twinkle 3.8s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .starfield circle:nth-child(3n) {
+      animation-delay: -1.2s;
+      animation-duration: 4.8s;
+    }
+
+    .starfield circle:nth-child(4n) {
+      animation-delay: -2.4s;
+      animation-duration: 3.2s;
+    }
+
+    .shooting-star {
+      animation: shooting-star 7s ease-in infinite;
+    }
+
+    .astronaut-bob {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: astronaut-bob 3s ease-in-out infinite;
+    }
+
+    .astronaut-arm {
+      transform-box: fill-box;
+      transform-origin: 12% 12%;
+      animation: astronaut-wave 2.2s ease-in-out infinite;
+    }
+
+    .habitat-light {
+      animation: habitat-pulse 3.4s ease-in-out infinite alternate;
+    }
+
+    .solar-glow {
+      animation: solar-shimmer 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes star-twinkle {
+      0%, 100% { opacity: .38; transform: scale(.78); }
+      50% { opacity: 1; transform: scale(1.25); }
+    }
+
+    @keyframes shooting-star {
+      0%, 74% { opacity: 0; transform: translate(-30px, 8px); }
+      78% { opacity: 1; }
+      86%, 100% { opacity: 0; transform: translate(160px, 45px); }
+    }
+
+    @keyframes astronaut-bob {
+      0%, 100% { transform: translateY(0) rotate(-.4deg); }
+      50% { transform: translateY(-2.5px) rotate(.8deg); }
+    }
+
+    @keyframes astronaut-wave {
+      0%, 100% { transform: rotate(-4deg); }
+      50% { transform: rotate(12deg); }
+    }
+
+    @keyframes habitat-pulse {
+      from { opacity: .55; }
+      to { opacity: 1; }
+    }
+
+    @keyframes solar-shimmer {
+      from { opacity: .68; }
+      to { opacity: 1; }
+    }
+
+    .scene-topline {
+      position: absolute;
+      z-index: 4;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .location-chip,
+    .weather-chip {
+      min-height: 33px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 11px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      background: rgba(5, 18, 14, 0.72);
+      backdrop-filter: blur(9px);
+      font-size: 0.66rem;
+      font-weight: 780;
+      letter-spacing: 0.05em;
+    }
+
+    .weather-chip {
+      color: #ffd3c0;
+    }
+
+    .weather-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--rust);
+      box-shadow: 0 0 12px var(--rust);
+    }
+
+    .scene-bottom {
+      position: absolute;
+      z-index: 4;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 10px;
+    }
+
+    .scene-brief {
+      max-width: 500px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 15px;
+      background: rgba(4, 17, 13, 0.76);
+      backdrop-filter: blur(12px);
+    }
+
+    .scene-brief h3 {
+      margin: 6px 0 4px;
+      font-size: 1rem;
+    }
+
+    .scene-brief p {
+      margin: 0;
+      color: #b8cbc2;
+      font-size: 0.73rem;
+      line-height: 1.48;
+    }
+
+    .health-orb {
+      width: 106px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 15px;
+      background: rgba(4, 17, 13, 0.76);
+      backdrop-filter: blur(12px);
+    }
+
+    .health-orb span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.6rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .health-orb strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--mint);
+      font-size: 1.85rem;
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .sensor-hotspot {
+      position: absolute;
+      z-index: 5;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--mint);
+    }
+
+    .sensor-hotspot::before {
+      content: "";
+      width: 11px;
+      height: 11px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      background: rgba(5, 18, 14, 0.82);
+      box-shadow: 0 0 0 0 rgba(120,227,182,0.35);
+      animation: hotspot 2s infinite;
+    }
+
+    .sensor-hotspot::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 36px;
+      white-space: nowrap;
+      padding: 4px 7px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(4, 17, 13, 0.85);
+      color: #d9e8e1;
+      font-size: 0.57rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 150ms ease, transform 150ms ease;
+      pointer-events: none;
+    }
+
+    .sensor-hotspot:hover::after,
+    .sensor-hotspot:focus-visible::after {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .sensor-hotspot.inspected::before {
+      background: var(--mint);
+      box-shadow: 0 0 12px rgba(120,227,182,0.66);
+      animation: none;
+    }
+
+    @keyframes hotspot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(120,227,182,0.34); }
+      50% { box-shadow: 0 0 0 9px rgba(120,227,182,0); }
+    }
+
+    .sensor-toast {
+      position: absolute;
+      z-index: 6;
+      top: 58px;
+      left: 14px;
+      max-width: 280px;
+      padding: 11px 13px;
+      border: 1px solid rgba(120,227,182,0.28);
+      border-radius: 12px;
+      background: rgba(5, 20, 16, 0.92);
+      color: #d4e4dc;
+      font-size: 0.7rem;
+      line-height: 1.45;
+      opacity: 0;
+      transform: translateY(-5px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .sensor-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .console {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(14, 34, 29, 0.97), rgba(9, 25, 21, 0.99));
+    }
+
+    .console-scroll {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .mission-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .mission-kicker .eyebrow {
+      color: var(--solar);
+    }
+
+    .sol-number {
+      color: var(--muted);
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .briefing h3 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.3vw, 1.85rem);
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+    }
+
+    .briefing p {
+      margin: 8px 0 0;
+      color: #b6c9c0;
+      font-size: 0.81rem;
+      line-height: 1.58;
+    }
+
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .telemetry-panel {
+      flex: 0 0 auto;
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(7, 23, 19, 0.92);
+    }
+
+    .telemetry-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .telemetry-head strong {
+      font-size: 0.84rem;
+    }
+
+    .telemetry-head span {
+      color: var(--muted);
+      font-size: 0.67rem;
+    }
+
+    .telemetry-panel .sensor-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 6px 0 0;
+      gap: 0 10px;
+    }
+
+    .telemetry-panel .sensor-card {
+      padding: 6px 3px 7px;
+    }
+
+    .telemetry-panel .sensor-top {
+      font-size: 0.64rem;
+      letter-spacing: 0.04em;
+    }
+
+    .telemetry-panel .sensor-value strong {
+      font-size: 1.45rem;
+    }
+
+    .telemetry-panel .sensor-target {
+      margin-top: 3px;
+      font-size: 0.62rem;
+    }
+
+    .telemetry-panel .meter {
+      height: 4px;
+      margin-top: 6px;
+    }
+
+    .band-state {
+      color: var(--mint);
+      font-size: 0.57rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .sensor-card.warn .band-state {
+      color: var(--solar);
+    }
+
+    .sensor-card.bad .band-state {
+      color: var(--danger);
+    }
+
+    /* Make the actual controls visually distinct from the mission guide */
+    .interaction-zone {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(120, 227, 182, 0.34);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(42, 92, 74, 0.34), rgba(14, 41, 34, 0.7)),
+        rgba(9, 31, 25, 0.78);
+      box-shadow:
+        inset 0 0 0 1px rgba(120,227,182,0.04),
+        0 16px 36px -26px rgba(0,0,0,0.8);
+    }
+
+    .interaction-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: var(--mint);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .interaction-label span:last-child {
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .interaction-prompt {
+      margin: 0 0 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      color: var(--mint);
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+      font-weight: 820;
+      line-height: 1.42;
+      text-shadow: 0 2px 12px rgba(0,0,0,.24);
+    }
+
+    .interaction-prompt::before {
+      content: "→";
+      flex: 0 0 auto;
+      color: var(--solar);
+      font-size: 1.05em;
+      line-height: 1.35;
+    }
+
+    .interaction-zone .stage-panel {
+      margin-top: 0;
+    }
+
+    .interaction-zone .stage-panel-head {
+      margin-bottom: 11px;
+    }
+
+    .interaction-zone .decision-bar {
+      border-top-color: rgba(120,227,182,0.22);
+      margin-top: 14px;
+    }
+
+    .briefing {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(18, 42, 35, 0.48);
+    }
+
+    .briefing-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .right-health {
+      min-width: 104px;
+      padding: 9px 11px;
+      border: 1px solid rgba(120,227,182,.24);
+      border-radius: 12px;
+      background: rgba(120,227,182,.07);
+      text-align: right;
+    }
+
+    .right-health span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .right-health strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--mint);
+      font-size: 1.6rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .current-situation {
+      margin-top: 13px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .current-situation strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.02rem;
+    }
+
+    .current-situation p {
+      margin: 4px 0 0;
+    }
+
+    .stage-goal {
+      display: flex;
+      gap: 10px;
+      margin-top: 11px;
+      color: #d7e5de;
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    .stage-goal b {
+      flex: 0 0 auto;
+      color: var(--solar);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .how-to {
+      margin-top: 14px;
+    }
+
+    .how-to-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--mint);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .guide-steps {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .guide-steps li {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: #d0dfd8;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .guide-steps b {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: rgba(120,227,182,.11);
+      color: var(--mint);
+      font-size: 0.64rem;
+    }
+
+    .sensor-card {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(19, 44, 37, 0.62);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .sensor-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.63rem;
+      font-weight: 760;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .sensor-value {
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sensor-value strong {
+      font-size: 1.4rem;
+      line-height: 1;
+      letter-spacing: -0.045em;
+    }
+
+    .sensor-value span {
+      color: var(--muted);
+      font-size: 0.64rem;
+    }
+
+    .meter {
+      position: relative;
+      height: 5px;
+      margin-top: 9px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .meter-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--sensor-color, var(--mint));
+      transition: width 450ms cubic-bezier(.2,.8,.2,1), background 180ms ease;
+    }
+
+    .meter-target {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.38);
+    }
+
+    .sensor-target {
+      margin-top: 6px;
+      color: #819990;
+      font-size: 0.58rem;
+    }
+
+    .sensor-card.good .meter-fill { background: var(--mint); }
+    .sensor-card.warn .meter-fill { background: var(--solar); }
+    .sensor-card.bad .meter-fill { background: var(--danger); }
+
+    .stage-panel {
+      margin-top: 5px;
+    }
+
+    .stage-panel.shake {
+      animation: control-shake 360ms ease;
+    }
+
+    @keyframes control-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    .stage-panel-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .stage-panel-head h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .stage-panel-head span {
+      color: var(--muted);
+      font-size: 0.64rem;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .control-card {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(18, 42, 35, 0.5);
+    }
+
+    .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .control-top label {
+      font-size: 0.75rem;
+      font-weight: 750;
+    }
+
+    .control-output {
+      color: var(--solar);
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .range {
+      appearance: none;
+      width: 100%;
+      height: 18px;
+      margin: 8px 0 0;
+      background: transparent;
+    }
+
+    .range::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(120,227,182,0.6), rgba(245,204,112,0.65));
+    }
+
+    .range::-moz-range-track {
+      height: 5px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(120,227,182,0.6), rgba(245,204,112,0.65));
+    }
+
+    .range::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -6.5px;
+      border: 3px solid #0d211d;
+      border-radius: 50%;
+      background: var(--text);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.24);
+    }
+
+    .range::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: 3px solid #0d211d;
+      border-radius: 50%;
+      background: var(--text);
+    }
+
+    .control-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.6rem;
+      line-height: 1.4;
+    }
+
+    .toggle-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(18, 42, 35, 0.5);
+    }
+
+    .toggle-copy strong {
+      display: block;
+      font-size: 0.73rem;
+    }
+
+    .toggle-copy span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.59rem;
+      line-height: 1.4;
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 25px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+      transition: background 160ms ease;
+    }
+
+    .switch-track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .switch input:checked + .switch-track {
+      background: rgba(120,227,182,0.25);
+    }
+
+    .switch input:checked + .switch-track::after {
+      transform: translateX(19px);
+      background: var(--mint);
+    }
+
+    .decision-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 13px;
+      padding-top: 13px;
+      border-top: 1px solid var(--line);
+    }
+
+    .decision-hint {
+      max-width: 270px;
+      color: var(--muted);
+      font-size: 0.64rem;
+      line-height: 1.42;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      border-left: 2px solid var(--mint);
+      border-radius: 0 12px 12px 0;
+      background: rgba(120, 227, 182, 0.075);
+    }
+
+    .feedback.show {
+      display: block;
+      animation: rise 280ms ease both;
+    }
+
+    .feedback-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--mint);
+      font-size: 0.65rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .feedback h4 {
+      margin: 7px 0 5px;
+      font-size: 0.98rem;
+    }
+
+    .feedback p {
+      margin: 0;
+      color: #c2d3ca;
+      font-size: 0.74rem;
+      line-height: 1.55;
+    }
+
+    .delta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .delta {
+      padding: 4px 7px;
+      border-radius: 7px;
+      background: rgba(255,255,255,0.06);
+      font-size: 0.61rem;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delta.positive { color: #a8f1d2; }
+    .delta.negative { color: #ffb29b; }
+
+    .knowledge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 10px;
+      padding: 6px 9px;
+      border: 1px solid rgba(245,204,112,0.25);
+      border-radius: 999px;
+      color: var(--solar);
+      background: rgba(245,204,112,0.07);
+      font-size: 0.61rem;
+      font-weight: 750;
+    }
+
+    /* Repair mini-game */
+    .pipeline {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(8, 27, 23, 0.7);
+    }
+
+    .pipe-flow {
+      height: 10px;
+      margin: 5px 0 13px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .pipe-flow span {
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      animation: flow 1.8s linear infinite;
+    }
+
+    .pipeline.failed .pipe-flow span {
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+      animation-duration: 0.65s;
+    }
+
+    @keyframes flow {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(260%); }
+    }
+
+    .valve-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .valve {
+      min-height: 86px;
+      padding: 10px 7px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: rgba(20, 47, 39, 0.62);
+      color: var(--text);
+      text-align: center;
+    }
+
+    .valve.open {
+      border-color: rgba(120,227,182,0.55);
+      background: rgba(120,227,182,0.11);
+    }
+
+    .valve strong {
+      display: block;
+      color: var(--solar);
+      font-size: 1rem;
+    }
+
+    .valve span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.58rem;
+      line-height: 1.35;
+    }
+
+    .pipeline-status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.65rem;
+      line-height: 1.4;
+    }
+
+    .pipeline-status.error {
+      color: #ffad97;
+    }
+
+    /* Sequence mini-game */
+    .sequence-grid {
+      display: grid;
+      gap: 7px;
+    }
+
+    .sequence-card {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: rgba(20, 47, 39, 0.58);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .sequence-card.used {
+      opacity: 0.35;
+    }
+
+    .sequence-index {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: var(--solar);
+      font-size: 0.6rem;
+      font-weight: 800;
+    }
+
+    .sequence-card strong {
+      font-size: 0.72rem;
+    }
+
+    .sequence-card span:last-child {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.59rem;
+    }
+
+    .sequence-rack {
+      min-height: 49px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 9px;
+      padding: 8px;
+      border: 1px dashed rgba(245,204,112,0.26);
+      border-radius: 11px;
+      color: var(--muted);
+      font-size: 0.62rem;
+    }
+
+    .sequence-chip {
+      min-width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(245,204,112,0.11);
+      color: var(--solar);
+      font-weight: 800;
+    }
+
+    /* Evidence board */
+    .evidence-shell,
+    .report-shell,
+    .about-shell {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(11, 29, 24, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .evidence-shell {
+      background:
+        radial-gradient(circle at 86% 12%, rgba(120,227,182,0.08), transparent 24rem),
+        rgba(11, 29, 24, 0.94);
+    }
+
+    .evidence-head,
+    .report-hero,
+    .about-hero {
+      padding: clamp(26px, 5vw, 56px);
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 88% 12%, rgba(120,227,182,0.13), transparent 25rem),
+        linear-gradient(135deg, rgba(24, 51, 43, 0.8), rgba(9, 27, 22, 0.9));
+    }
+
+    .evidence-head h1,
+    .report-hero h1,
+    .about-hero h1 {
+      margin: 9px 0 12px;
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+    }
+
+    .evidence-head p,
+    .report-hero p,
+    .about-hero p {
+      max-width: 780px;
+      margin: 0;
+      color: #b9ccc3;
+      font-size: 0.91rem;
+      line-height: 1.66;
+    }
+
+    .evidence-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      gap: 32px;
+      padding: clamp(22px, 4vw, 46px);
+    }
+
+    .evidence-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .evidence-section-head h2 {
+      margin: 0;
+    }
+
+    .evidence-step {
+      flex: 0 0 auto;
+      padding: 5px 8px;
+      border: 1px solid rgba(245,204,112,.3);
+      border-radius: 999px;
+      color: var(--solar);
+      background: rgba(245,204,112,.08);
+      font-size: 0.63rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .evidence-instruction {
+      margin: 9px 0 0;
+      color: var(--mint);
+      font-size: 0.96rem;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .evidence-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .evidence-card {
+      display: grid;
+      grid-template-columns: 39px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 13px;
+      border: 1px solid rgba(120,227,182,.28);
+      border-radius: 14px;
+      background:
+        linear-gradient(145deg, rgba(33, 78, 63, 0.72), rgba(15, 43, 35, 0.84));
+      color: var(--text);
+      text-align: left;
+      box-shadow: 0 12px 26px -24px rgba(0,0,0,.86);
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .evidence-card:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(120,227,182,.65);
+      background:
+        linear-gradient(145deg, rgba(40, 94, 75, 0.84), rgba(17, 51, 41, 0.92));
+    }
+
+    .evidence-card.picked {
+      border-color: rgba(120,227,182,.72);
+      background: rgba(82, 164, 128, 0.16);
+      opacity: 0.72;
+    }
+
+    .evidence-sol {
+      width: 37px;
+      height: 37px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(245,204,112,0.15);
+      color: var(--solar);
+      font-size: 0.72rem;
+      font-weight: 850;
+    }
+
+    .evidence-copy strong {
+      display: block;
+      font-size: 0.86rem;
+    }
+
+    .evidence-copy span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .add-evidence {
+      min-width: 54px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 9px;
+      border: 1px solid rgba(120,227,182,.42);
+      border-radius: 9px;
+      background: rgba(120,227,182,.14);
+      color: var(--mint);
+      font-size: 0.67rem;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .evidence-card.picked .add-evidence {
+      border-color: transparent;
+      background: var(--mint);
+      color: #09231a;
+    }
+
+    .evidence-builder {
+      position: relative;
+      padding: 20px;
+      border: 1px solid rgba(120,227,182,.36);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(34, 81, 66, 0.56), rgba(14, 43, 35, 0.86)),
+        rgba(14, 34, 29, 0.88);
+      box-shadow:
+        inset 0 0 0 1px rgba(120,227,182,.045),
+        0 20px 38px -28px rgba(0,0,0,.9);
+    }
+
+    .evidence-builder::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      bottom: 20px;
+      left: -1px;
+      width: 3px;
+      border-radius: 0 4px 4px 0;
+      background: linear-gradient(var(--mint), var(--solar));
+    }
+
+    .claim-label {
+      display: block;
+      margin: 15px 0 7px;
+      color: var(--solar);
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .claim-field {
+      width: 100%;
+      min-height: 138px;
+      padding: 12px;
+      resize: vertical;
+      border: 1px solid rgba(120,227,182,.3);
+      border-radius: 11px;
+      background: rgba(5, 24, 19, 0.82);
+      color: var(--text);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    .claim-field:focus {
+      border-color: rgba(120,227,182,.7);
+      box-shadow: 0 0 0 3px rgba(120,227,182,.08);
+    }
+
+    .claim-field::placeholder {
+      color: #738b80;
+    }
+
+    .evidence-slots {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .evidence-slot {
+      min-height: 71px;
+      padding: 11px;
+      border: 1px dashed rgba(245,204,112,.45);
+      border-radius: 12px;
+      color: var(--muted);
+      background: rgba(245,204,112,.035);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .evidence-slot.filled {
+      border-style: solid;
+      border-color: rgba(120,227,182,0.6);
+      background: rgba(120,227,182,0.1);
+      color: #d4e5dd;
+    }
+
+    .evidence-slot.dragover {
+      border-color: var(--solar);
+      background: rgba(245,204,112,0.07);
+    }
+
+    .slot-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--solar);
+      font-size: 0.61rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .remove-evidence {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .builder-checks {
+      display: grid;
+      gap: 7px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .builder-checks .met {
+      color: var(--mint);
+    }
+
+    .builder-checks span {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .builder-checks .met {
+      background: rgba(120,227,182,.08);
+    }
+
+    .evidence-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+
+    /* Report */
+    .outcome-badge {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 11px;
+      border: 1px solid rgba(120,227,182,0.3);
+      border-radius: 999px;
+      background: rgba(120,227,182,0.08);
+      color: var(--mint);
+      font-size: 0.66rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .outcome-badge.partial {
+      border-color: rgba(245,204,112,0.3);
+      background: rgba(245,204,112,0.08);
+      color: var(--solar);
+    }
+
+    .outcome-badge.fail {
+      border-color: rgba(255,135,121,0.3);
+      background: rgba(255,135,121,0.08);
+      color: var(--danger);
+    }
+
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+      gap: 34px;
+      padding: clamp(22px, 4vw, 46px);
+    }
+
+    .report-grid h2,
+    .about-section h2 {
+      margin: 0 0 14px;
+      font-size: 1.18rem;
+      letter-spacing: -0.025em;
+    }
+
+    .final-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .final-metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(18, 42, 35, 0.5);
+    }
+
+    .final-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.61rem;
+      font-weight: 760;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .final-metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.42rem;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .final-metric small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.58rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 39px minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .timeline-sol {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--solar);
+      background: rgba(245,204,112,0.06);
+      font-size: 0.62rem;
+      font-weight: 850;
+    }
+
+    .timeline-copy {
+      padding: 3px 0 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .timeline-copy strong {
+      font-size: 0.75rem;
+    }
+
+    .timeline-copy p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.64rem;
+      line-height: 1.45;
+    }
+
+    .report-note {
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(18, 42, 35, 0.45);
+    }
+
+    .report-note h2 {
+      font-size: 1rem;
+    }
+
+    .report-note p {
+      margin: 8px 0 0;
+      color: #b8cbc2;
+      font-size: 0.73rem;
+      line-height: 1.55;
+    }
+
+    .submitted-claim {
+      margin-top: 12px;
+      padding: 12px;
+      border-left: 2px solid var(--mint);
+      background: rgba(120,227,182,0.055);
+      color: #d1e1d9;
+      font-size: 0.72rem;
+      line-height: 1.55;
+    }
+
+    /* About */
+    .about-content {
+      padding: clamp(24px, 4vw, 46px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 34px;
+    }
+
+    .about-section {
+      margin-bottom: 30px;
+    }
+
+    .about-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .topic-grid,
+    .outcome-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .topic-card,
+    .outcome-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(18, 42, 35, 0.48);
+    }
+
+    .topic-card span {
+      color: var(--mint);
+      font-size: 0.61rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .topic-card strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .support-copy {
+      margin: 0;
+      color: #b9ccc3;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    .theory-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .theory-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--muted);
+      font-size: 0.62rem;
+      line-height: 1.45;
+    }
+
+    .theory-item b {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text);
+      font-size: 0.69rem;
+    }
+
+    .abcd-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .abcd-key {
+      padding: 4px 7px;
+      border-radius: 6px;
+      color: #10201b;
+      font-size: 0.59rem;
+      font-weight: 850;
+    }
+
+    .abcd-a { background: #f4ccd8; }
+    .abcd-b { background: #d5e4fb; }
+    .abcd-c { background: #f8e8a9; }
+    .abcd-d { background: #d6edd7; }
+
+    .outcome-card p {
+      margin: 0;
+      color: #cadbd3;
+      font-size: 0.78rem;
+      line-height: 1.8;
+    }
+
+    .outcome-card p span {
+      display: inline;
+      padding: 1px 2px;
+      border-radius: 3px;
+      color: #10201b;
+    }
+
+    .assignment-meta {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.68rem;
+      line-height: 1.55;
+    }
+
+    .about-actions {
+      padding: 0 clamp(24px, 4vw, 46px) clamp(24px, 4vw, 46px);
+    }
+
+    /* Readability and lower-interface-density overrides */
+    body {
+      font-size: 17px;
+    }
+
+    .brand-eyebrow,
+    .eyebrow {
+      font-size: 0.75rem;
+    }
+
+    .brand-name {
+      font-size: 1.08rem;
+    }
+
+    .status-pill,
+    .button {
+      font-size: 0.9rem;
+    }
+
+    .button.small {
+      font-size: 0.82rem;
+    }
+
+    .hero-copy .lead {
+      font-size: 1.08rem;
+    }
+
+    .loop-step strong {
+      font-size: 0.98rem;
+    }
+
+    .loop-step span,
+    .theme-line,
+    .section-subtitle {
+      font-size: 0.86rem;
+    }
+
+    .loadout-head p,
+    .evidence-head p,
+    .report-hero p,
+    .about-hero p {
+      font-size: 1rem;
+    }
+
+    .briefing h3 {
+      font-size: clamp(1.55rem, 2.6vw, 2rem);
+    }
+
+    .briefing p {
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .sensor-card {
+      padding: 12px 8px;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .sensor-top {
+      font-size: 0.68rem;
+    }
+
+    .sensor-value strong {
+      font-size: 1.7rem;
+    }
+
+    .sensor-target {
+      font-size: 0.68rem;
+    }
+
+    .control-card {
+      padding: 13px 0;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .control-top label {
+      font-size: 0.9rem;
+    }
+
+    .control-output {
+      font-size: 0.86rem;
+    }
+
+    .control-note {
+      font-size: 0.72rem;
+    }
+
+    .toggle-control {
+      padding: 13px;
+    }
+
+    .toggle-copy strong {
+      font-size: 0.88rem;
+    }
+
+    .toggle-copy span,
+    .decision-hint {
+      font-size: 0.75rem;
+    }
+
+    .feedback h4 {
+      font-size: 1.08rem;
+    }
+
+    .feedback p {
+      font-size: 0.88rem;
+    }
+
+    .delta,
+    .knowledge-tag {
+      font-size: 0.7rem;
+    }
+
+    .valve strong {
+      font-size: 1.3rem;
+    }
+
+    .valve span,
+    .pipeline-status {
+      font-size: 0.7rem;
+    }
+
+    .sequence-card strong {
+      font-size: 0.84rem;
+    }
+
+    .sequence-card span:last-child {
+      font-size: 0.7rem;
+    }
+
+    .evidence-copy strong {
+      font-size: 0.84rem;
+    }
+
+    .evidence-copy span,
+    .evidence-slot,
+    .claim-label,
+    .builder-checks {
+      font-size: 0.76rem;
+    }
+
+    .claim-field {
+      font-size: 0.9rem;
+    }
+
+    .topic-card span,
+    .final-metric span,
+    .timeline-copy p,
+    .assignment-meta {
+      font-size: 0.72rem;
+    }
+
+    .topic-card strong,
+    .support-copy,
+    .outcome-card p {
+      font-size: 0.9rem;
+    }
+
+    .theory-item {
+      font-size: 0.76rem;
+    }
+
+    .theory-item b {
+      font-size: 0.84rem;
+    }
+
+    /* Animated, level-specific greenhouse scene */
+    .weather-fx {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: 0.85;
+      transition: opacity 600ms ease;
+    }
+
+    .weather-particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      transition: background 500ms ease;
+    }
+
+    .scene-pane[data-weather="cold"] {
+      background:
+        radial-gradient(circle at 75% 25%, rgba(125,210,255,0.14), transparent 13rem),
+        linear-gradient(180deg, #142b38 0%, #17383d 39%, #293d3f 100%);
+    }
+
+    .scene-pane[data-weather="cold"] .weather-particle {
+      width: 4px;
+      height: 4px;
+      background: #c9f3ff;
+      opacity: 0.8;
+      animation: frost-fall linear infinite;
+    }
+
+    .scene-pane[data-weather="storm"] .weather-particle {
+      width: 3px;
+      height: 3px;
+      background: #f2b184;
+      opacity: 0.6;
+      animation: storm-drift linear infinite;
+    }
+
+    .scene-pane[data-weather="leak"] .weather-particle {
+      width: 4px;
+      height: 8px;
+      border-radius: 50% 50% 60% 60%;
+      background: #7dd2ff;
+      opacity: 0.68;
+      animation: drip-fall linear infinite;
+    }
+
+    .scene-pane[data-weather="heat"] {
+      background:
+        radial-gradient(circle at 76% 20%, rgba(255,177,92,0.24), transparent 14rem),
+        linear-gradient(180deg, #4a3320 0%, #473126 42%, #592b1e 100%);
+    }
+
+    .scene-pane[data-weather="heat"] .weather-particle {
+      width: 10px;
+      height: 34px;
+      border: 2px solid transparent;
+      border-bottom-color: rgba(255,193,111,0.35);
+      border-radius: 50%;
+      opacity: 0.65;
+      animation: heat-rise ease-in-out infinite;
+    }
+
+    .scene-pane[data-weather="fault"] .scene-visual {
+      animation: power-flicker 3.2s steps(1) infinite;
+    }
+
+    .scene-pane[data-weather="fault"] .weather-particle {
+      width: 2px;
+      height: 14px;
+      background: #f5cc70;
+      opacity: 0;
+      animation: spark 2.4s linear infinite;
+    }
+
+    .scene-pane[data-weather="harvest"] {
+      background:
+        radial-gradient(circle at 72% 22%, rgba(245,204,112,0.2), transparent 15rem),
+        linear-gradient(180deg, #1d3940 0%, #274333 40%, #643a24 100%);
+    }
+
+    .scene-pane[data-weather="harvest"] .weather-particle {
+      width: 4px;
+      height: 4px;
+      background: #f8dc8c;
+      opacity: 0.8;
+      animation: harvest-float ease-in-out infinite;
+    }
+
+    @keyframes frost-fall {
+      from { transform: translateY(-30px) rotate(0deg); }
+      to { transform: translateY(520px) rotate(220deg); }
+    }
+
+    @keyframes storm-drift {
+      from { transform: translateX(-30px) translateY(0); }
+      to { transform: translateX(620px) translateY(-30px); }
+    }
+
+    @keyframes drip-fall {
+      from { transform: translateY(-20px); }
+      to { transform: translateY(480px); }
+    }
+
+    @keyframes heat-rise {
+      0% { transform: translateY(80px) scale(.7); opacity: 0; }
+      35%, 70% { opacity: .7; }
+      100% { transform: translateY(-110px) scale(1.15); opacity: 0; }
+    }
+
+    @keyframes spark {
+      0%, 74%, 100% { opacity: 0; transform: scaleY(.4); }
+      77%, 82% { opacity: 1; transform: scaleY(1); }
+    }
+
+    @keyframes harvest-float {
+      0%, 100% { transform: translateY(0); opacity: .25; }
+      50% { transform: translateY(-32px); opacity: .95; }
+    }
+
+    @keyframes power-flicker {
+      0%, 93%, 100% { filter: brightness(1); }
+      94%, 96% { filter: brightness(.65); }
+      95% { filter: brightness(1.2); }
+    }
+
+    .stage-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .stage-flash.heat {
+      background: radial-gradient(circle at 50% 60%, rgba(255,153,92,.35), transparent 48%);
+      animation: flash-on 420ms ease;
+    }
+
+    .stage-flash.light {
+      background: radial-gradient(circle at 50% 55%, rgba(255,238,151,.4), transparent 52%);
+      animation: flash-on 420ms ease;
+    }
+
+    .stage-flash.water {
+      background: radial-gradient(circle at 50% 70%, rgba(125,210,255,.35), transparent 52%);
+      animation: flash-on 420ms ease;
+    }
+
+    @keyframes flash-on {
+      0%, 100% { opacity: 0; }
+      35% { opacity: 1; }
+    }
+
+    .plants-breathe {
+      transform-origin: center bottom;
+      animation: crop-sway 4.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes crop-sway {
+      from { rotate: -1deg; }
+      to { rotate: 1.2deg; }
+    }
+
+    /* Insulation-panel challenge */
+    .panel-builder {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(8, 27, 23, 0.6);
+    }
+
+    .insulation-panel {
+      min-height: 82px;
+      padding: 8px;
+      border: 1px dashed rgba(176,221,203,.34);
+      border-radius: 12px 12px 4px 4px;
+      background: rgba(255,255,255,.025);
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 750;
+    }
+
+    .insulation-panel.active {
+      border-style: solid;
+      border-color: rgba(120,227,182,.65);
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(120,227,182,.2), rgba(120,227,182,.05));
+      box-shadow: inset 0 8px 20px rgba(120,227,182,.07);
+    }
+
+    .mini-switch-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .big-switch {
+      min-height: 58px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(20,47,39,.6);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 750;
+    }
+
+    .big-switch.active {
+      border-color: var(--solar);
+      color: var(--text);
+      background: rgba(245,204,112,.1);
+    }
+
+    /* Energy dispatch challenge */
+    .token-dispatch {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .token-bin {
+      min-height: 132px;
+      padding: 12px 9px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(8, 27, 23, 0.62);
+      color: var(--text);
+      text-align: center;
+    }
+
+    .token-bin strong {
+      display: block;
+      font-size: 0.82rem;
+    }
+
+    .token-bin span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.68rem;
+    }
+
+    .token-pips {
+      min-height: 34px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .power-pip {
+      width: 14px;
+      height: 14px;
+      border: 1px solid rgba(245,204,112,.45);
+      border-radius: 50%;
+      background: rgba(245,204,112,.12);
+    }
+
+    .power-pip.used {
+      border-color: transparent;
+      background: var(--solar);
+      box-shadow: 0 0 10px rgba(245,204,112,.35);
+    }
+
+    .token-pool {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 40px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .rv-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 9px;
+    }
+
+    .rv-row .button {
+      min-width: 34px;
+      width: 34px;
+      padding: 0;
+    }
+
+    /* Heat-zone hunt */
+    .zone-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .zone-card {
+      min-height: 104px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background:
+        radial-gradient(circle at 75% 28%, rgba(233,133,95,.14), transparent 55%),
+        rgba(8,27,23,.66);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .zone-card.selected {
+      border-color: var(--sky);
+      box-shadow: inset 0 0 0 1px rgba(125,210,255,.28);
+    }
+
+    .zone-card strong {
+      display: block;
+      color: var(--solar);
+      font-size: 1.45rem;
+    }
+
+    .zone-card span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.4;
+    }
+
+    /* Harvest stabilization challenge */
+    .harvest-game {
+      overflow: hidden;
+      padding: 14px;
+      border: 1px solid rgba(245,204,112,.22);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245,204,112,.1), transparent 60%),
+        rgba(8, 27, 23, 0.66);
+    }
+
+    .harvest-timer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .harvest-timer strong {
+      color: var(--solar);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .harvest-track {
+      height: 7px;
+      margin: 9px 0 13px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .harvest-progress {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--solar), var(--mint));
+      transition: width 250ms linear;
+    }
+
+    .boost-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .boost-button {
+      min-height: 78px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(20,47,39,.72);
+      color: var(--text);
+      font-size: 0.76rem;
+      font-weight: 780;
+    }
+
+    .boost-button:active {
+      transform: scale(.97);
+    }
+
+    .boost-button b {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--solar);
+      font-size: 1.25rem;
+    }
+
+    .boost-button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    /* Final interaction-area sizing */
+    .button {
+      font-size: 0.96rem;
+    }
+
+    .button.small {
+      font-size: 0.84rem;
+    }
+
+    .console-scroll {
+      padding: 23px;
+    }
+
+    .telemetry-head strong {
+      font-size: 1rem;
+    }
+
+    .telemetry-head span {
+      font-size: 0.8rem;
+    }
+
+    .sensor-top {
+      font-size: 0.74rem;
+    }
+
+    .sensor-value strong {
+      font-size: 1.8rem;
+    }
+
+    .sensor-target {
+      font-size: 0.75rem;
+    }
+
+    .stage-panel-head h3 {
+      font-size: 1.13rem;
+    }
+
+    .stage-panel-head span {
+      font-size: 0.8rem;
+    }
+
+    .control-top label {
+      font-size: 1.04rem;
+    }
+
+    .control-output {
+      font-size: 1.02rem;
+    }
+
+    .control-note {
+      font-size: 0.82rem;
+    }
+
+    .toggle-copy strong {
+      font-size: 1.02rem;
+    }
+
+    .toggle-copy span,
+    .decision-hint {
+      font-size: 0.86rem;
+    }
+
+    .insulation-panel {
+      min-height: 94px;
+      font-size: 1rem;
+    }
+
+    .big-switch {
+      min-height: 68px;
+      font-size: 1.04rem;
+    }
+
+    .token-bin strong {
+      font-size: 1.08rem;
+    }
+
+    .token-bin span {
+      font-size: 0.86rem;
+    }
+
+    .valve strong {
+      font-size: 1.5rem;
+    }
+
+    .valve span,
+    .pipeline-status {
+      font-size: 0.88rem;
+    }
+
+    .zone-card strong {
+      font-size: 1.75rem;
+    }
+
+    .zone-card span {
+      font-size: 0.9rem;
+    }
+
+    .sequence-card strong {
+      font-size: 1.02rem;
+    }
+
+    .sequence-card span:last-child {
+      font-size: 0.86rem;
+    }
+
+    .boost-button {
+      min-height: 86px;
+      font-size: 1rem;
+    }
+
+    .boost-button b {
+      font-size: 1.55rem;
+    }
+
+    .stage-goal {
+      font-size: 0.88rem;
+    }
+
+    .guide-steps li {
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 1020px) {
+      .hero-grid,
+      .loadout-body,
+      .about-content,
+      .report-grid,
+      .evidence-body {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 430px;
+      }
+
+      .hero-copy {
+        min-height: 500px;
+      }
+
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .scene-pane {
+        min-height: 0;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .scene-visual {
+        min-height: 500px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        width: min(calc(100% - 20px), 1260px);
+        padding-top: 12px;
+      }
+
+      .brand-name {
+        white-space: normal;
+      }
+
+      .status-pill {
+        display: none;
+      }
+
+      .top-actions .button {
+        padding: 0 12px;
+      }
+
+      .hero-grid {
+        min-height: 0;
+        gap: 10px;
+      }
+
+      .hero-visual {
+        min-height: 370px;
+      }
+
+      .hero-message {
+        left: 17px;
+        right: 17px;
+        bottom: 17px;
+      }
+
+      .hero-message h2 {
+        font-size: 2.6rem;
+      }
+
+      .hero-copy {
+        min-height: 0;
+        padding: 24px 19px;
+      }
+
+      .learning-loop,
+      .cargo-grid,
+      .sensor-grid,
+      .final-metrics,
+      .topic-grid,
+      .theory-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .telemetry-panel .sensor-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .telemetry-panel .sensor-top {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .telemetry-panel .sensor-top span:last-child {
+        color: #8da69a;
+        font-size: 0.64rem;
+      }
+
+      .panel-builder {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .boost-grid {
+        gap: 6px;
+      }
+
+      .boost-button {
+        min-height: 82px;
+        padding: 7px;
+        font-size: 0.88rem;
+      }
+
+      .loadout-head {
+        padding: 25px 18px;
+      }
+
+      .loadout-body,
+      .console-scroll,
+      .report-grid,
+      .evidence-body,
+      .about-content {
+        padding: 17px;
+      }
+
+      .game-head {
+        align-items: flex-start;
+        padding: 12px;
+      }
+
+      .sol-dot {
+        width: 16px;
+      }
+
+      .scene-pane {
+        min-height: 0;
+      }
+
+      .scene-visual {
+        min-height: 420px;
+      }
+
+      .scene-topline {
+        top: 11px;
+        left: 11px;
+        right: 11px;
+      }
+
+      .scene-bottom {
+        left: 11px;
+        right: 11px;
+        bottom: 11px;
+        grid-template-columns: 1fr;
+      }
+
+      .briefing-row {
+        flex-wrap: wrap;
+      }
+
+      .right-health {
+        min-width: 92px;
+        text-align: left;
+      }
+
+      .telemetry-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .health-orb {
+        display: none;
+      }
+
+      .scene-brief {
+        padding: 12px;
+      }
+
+      .decision-bar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .decision-bar .button {
+        width: 100%;
+      }
+
+      .valve-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .evidence-card {
+        grid-template-columns: 35px minmax(0, 1fr) auto;
+      }
+
+      .evidence-head,
+      .report-hero,
+      .about-hero {
+        padding: 26px 18px;
+      }
+
+      .about-actions {
+        padding: 0 18px 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media print {
+      body {
+        color: #10201b;
+        background: #fff;
+      }
+
+      .topbar,
+      .no-print,
+      .report-hero .outcome-badge,
+      .view:not(#view-debrief) {
+        display: none !important;
+      }
+
+      #view-debrief {
+        display: block !important;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .report-shell {
+        color: #10201b;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .report-hero {
+        padding: 24px 0;
+        color: #10201b;
+        background: #fff;
+      }
+
+      .report-hero h1,
+      .report-hero p {
+        color: #10201b;
+      }
+
+      .report-grid {
+        display: block;
+        padding: 22px 0;
+      }
+
+      .report-note {
+        margin-top: 22px;
+      }
+
+      .report-grid,
+      .final-metric,
+      .timeline-copy,
+      .report-note {
+        color: #10201b;
+        background: #fff;
+        break-inside: avoid;
+      }
+
+      .final-metric span,
+      .final-metric small,
+      .timeline-copy p,
+      .report-note p {
+        color: #4e6359;
+      }
+
+      .final-metric,
+      .report-note {
+        border-color: #d7e1dc;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <button class="brand" id="brandHome" type="button" aria-label="Return to mission home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M12 3v18M8.5 6.5c2.2 1.4 4.8 1.4 7 0M8.5 17.5c2.2-1.4 4.8-1.4 7 0"/>
+            <path d="M12 8c-2.2-2.5-5.1-2-6.5-.8 1.2 2.8 3.8 3.7 6.5.8ZM12 8c2.2-2.5 5.1-2 6.5-.8-1.2 2.8-3.8 3.7-6.5.8Z"/>
+            <path d="M12 14c-2.2 2.5-5.1 2-6.5.8 1.2-2.8 3.8-3.7 6.5-.8ZM12 14c2.2 2.5 5.1 2 6.5.8-1.2-2.8-3.8-3.7-6.5-.8Z"/>
+          </svg>
+        </span>
+        <span>
+          <span class="brand-eyebrow">STEM learning simulation</span>
+          <span class="brand-name">Red Horizon</span>
+        </span>
+      </button>
+      <div class="top-actions">
+        <span class="status-pill" id="headerStatus">Mission ready</span>
+        <button class="button ghost" id="openAbout" type="button">About the course</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="view active" id="view-intro" aria-labelledby="introTitle">
+        <div class="hero-grid">
+          <div class="hero-visual">
+            <svg viewBox="0 0 760 760" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A greenhouse and astronaut on the bright surface of Mars under a star-filled sky">
+              <defs>
+                <linearGradient id="introSky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#24516b"/>
+                  <stop offset=".48" stop-color="#3b5e61"/>
+                  <stop offset="1" stop-color="#9b5a3b"/>
+                </linearGradient>
+                <linearGradient id="introGround" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#bd6843"/>
+                  <stop offset="1" stop-color="#633326"/>
+                </linearGradient>
+                <linearGradient id="introGlass" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#a8ead5" stop-opacity=".3"/>
+                  <stop offset="1" stop-color="#6caaa1" stop-opacity=".08"/>
+                </linearGradient>
+                <radialGradient id="introGlow">
+                  <stop offset="0" stop-color="#7ce4b8" stop-opacity=".58"/>
+                  <stop offset="1" stop-color="#7ce4b8" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="introSun">
+                  <stop offset="0" stop-color="#ffe0a5" stop-opacity=".68"/>
+                  <stop offset="1" stop-color="#ffcf8c" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="introSkyGlow">
+                  <stop offset="0" stop-color="#86dfff" stop-opacity=".24"/>
+                  <stop offset="1" stop-color="#86dfff" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="introMoon" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#f5dbb8"/>
+                  <stop offset="1" stop-color="#b98572"/>
+                </linearGradient>
+                <linearGradient id="introSolar" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#67b9dd"/>
+                  <stop offset="1" stop-color="#1f607e"/>
+                </linearGradient>
+              </defs>
+              <rect width="760" height="760" fill="url(#introSky)"/>
+              <circle cx="612" cy="150" r="190" fill="url(#introSkyGlow)"/>
+              <circle cx="612" cy="150" r="112" fill="url(#introSun)"/>
+              <circle cx="612" cy="150" r="43" fill="#ffd38f" opacity=".54"/>
+              <circle cx="111" cy="104" r="18" fill="url(#introMoon)" opacity=".74"/>
+              <g class="starfield" fill="#effcff">
+                <circle cx="48" cy="60" r="1.7"/><circle cx="81" cy="139" r="1.2"/><circle cx="115" cy="49" r="1.1"/>
+                <circle cx="151" cy="168" r="1.6"/><circle cx="203" cy="81" r="1.2"/><circle cx="238" cy="129" r="1.8"/>
+                <circle cx="281" cy="58" r="1"/><circle cx="316" cy="109" r="1.5"/><circle cx="350" cy="160" r="1.1"/>
+                <circle cx="392" cy="73" r="1.8"/><circle cx="443" cy="127" r="1.3"/><circle cx="476" cy="48" r="1"/>
+                <circle cx="516" cy="95" r="1.5"/><circle cx="558" cy="69" r="1.1"/><circle cx="696" cy="64" r="1.4"/>
+                <circle cx="725" cy="117" r="1.8"/><circle cx="670" cy="198" r="1.1"/><circle cx="590" cy="223" r="1"/>
+                <circle cx="275" cy="198" r=".9"/><circle cx="37" cy="214" r="1.2"/><circle cx="749" cy="186" r="1.1"/>
+              </g>
+              <g class="shooting-star" stroke="#e7fbff" stroke-linecap="round">
+                <path d="M510 72 L560 96" stroke-width="2.2" opacity=".9"/>
+                <path d="M560 96 L571 101" stroke-width="4" opacity=".5"/>
+              </g>
+              <path d="M0 445 L72 412 L129 438 L198 391 L280 446 L358 407 L440 450 L525 404 L616 433 L704 397 L760 420 L760 505 L0 505 Z" fill="#64362d" opacity=".68"/>
+              <path d="M0 468 C118 420 221 464 323 439 C452 406 552 359 760 414 L760 760 L0 760 Z" fill="url(#introGround)"/>
+              <g opacity=".9">
+                <path d="M38 423 Q69 386 99 423 Z" fill="#3f3530" stroke="#e9aa80" stroke-opacity=".48" stroke-width="2"/>
+                <path d="M91 423 Q117 394 143 423 Z" fill="#473a32" stroke="#f0b184" stroke-opacity=".38" stroke-width="2"/>
+                <rect x="61" y="423" width="17" height="19" rx="2" fill="#3b3a35"/>
+                <rect x="110" y="423" width="14" height="16" rx="2" fill="#3b3a35"/>
+                <circle cx="69" cy="427" r="2" fill="#f5cc70" class="habitat-light"/>
+                <circle cx="117" cy="427" r="2" fill="#78e3b6" class="habitat-light"/>
+              </g>
+              <path d="M0 505 C144 460 255 503 389 472 C535 438 637 439 760 477" fill="none" stroke="#ffb07b" stroke-opacity=".3" stroke-width="3"/>
+              <path d="M0 575 C163 526 265 565 420 537 C559 512 655 506 760 539" fill="none" stroke="#46231d" stroke-opacity=".5" stroke-width="6"/>
+              <ellipse cx="382" cy="644" rx="295" ry="37" fill="#110c0b" opacity=".4"/>
+              <g transform="translate(197 221)">
+                <path d="M25 374 C28 185 91 71 201 14 C315 73 378 185 383 374 Z" fill="url(#introGlass)" stroke="#c2f0de" stroke-opacity=".42" stroke-width="2"/>
+                <path d="M201 17 L201 374 M86 121 L318 121 M26 259 L380 259" fill="none" stroke="#c7f2e2" stroke-opacity=".2" stroke-width="2"/>
+                <path d="M4 374 H397" stroke="#e0fff2" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
+                <ellipse cx="201" cy="350" rx="155" ry="35" fill="url(#introGlow)"/>
+                <g stroke="#80deb7" stroke-width="4" stroke-linecap="round">
+                  <path d="M94 362 V306 M94 336 C74 329 66 311 67 296 C87 298 95 311 94 336 Z" fill="#63c69c" stroke-width="2"/>
+                  <path d="M142 362 V285 M142 323 C122 316 114 299 115 283 C134 285 142 299 142 323 Z" fill="#70d5aa" stroke-width="2"/>
+                  <path d="M191 362 V270 M191 314 C172 307 163 290 165 274 C183 276 191 290 191 314 Z" fill="#84e4b9" stroke-width="2"/>
+                  <path d="M241 362 V289 M241 328 C221 321 212 304 214 288 C233 290 241 304 241 328 Z" fill="#70d5aa" stroke-width="2"/>
+                  <path d="M290 362 V314 M290 343 C270 336 262 319 263 304 C282 306 290 319 290 343 Z" fill="#63c69c" stroke-width="2"/>
+                </g>
+                <g transform="translate(338 185)">
+                  <rect width="59" height="91" rx="12" fill="#10231e" stroke="#9ce3c6" stroke-opacity=".4"/>
+                  <rect x="10" y="13" width="39" height="9" rx="4.5" fill="#69d9ac"/>
+                  <rect x="10" y="30" width="28" height="5" rx="2.5" fill="#eef9f4" opacity=".68"/>
+                  <rect x="10" y="42" width="35" height="5" rx="2.5" fill="#eef9f4" opacity=".35"/>
+                  <circle cx="18" cy="69" r="5" fill="#f4c96c"/>
+                  <circle cx="35" cy="69" r="5" fill="#69d9ac"/>
+                </g>
+                <g transform="translate(63 301)">
+                  <g class="astronaut-bob">
+                    <ellipse cx="0" cy="60" rx="20" ry="5" fill="#0a1713" opacity=".42"/>
+                    <path d="M-10 37 L-13 57 M9 37 L13 56" stroke="#e68d55" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M-17 18 Q0 8 17 18 L14 42 Q0 48 -14 42 Z" fill="#f3a25e"/>
+                    <circle cx="0" cy="5" r="15" fill="#eaf6f0"/>
+                    <circle cx="1" cy="5" r="10" fill="#193432"/>
+                    <path d="M-5 3 Q2 0 8 5" fill="none" stroke="#7de6bf" stroke-width="2" stroke-linecap="round"/>
+                    <g class="astronaut-arm">
+                      <path d="M14 20 L28 9" stroke="#ef9a5c" stroke-width="6" stroke-linecap="round"/>
+                      <circle cx="29" cy="8" r="4" fill="#e9f5ef"/>
+                    </g>
+                    <path d="M-13 22 L-28 32" stroke="#ef9a5c" stroke-width="6" stroke-linecap="round"/>
+                    <g transform="translate(-35 30)">
+                      <rect width="17" height="13" rx="3" fill="#78b9ca"/>
+                      <path d="M14 4 Q22 4 20 11" fill="none" stroke="#9fe8d1" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                  </g>
+                </g>
+              </g>
+              <g class="solar-glow" transform="translate(585 444) rotate(-8)">
+                <path d="M20 83 L49 31" stroke="#d4c9b8" stroke-width="5" stroke-linecap="round"/>
+                <path d="M49 31 L80 83" stroke="#d4c9b8" stroke-width="5" stroke-linecap="round"/>
+                <rect x="0" y="18" width="98" height="55" rx="4" fill="url(#introSolar)" stroke="#bcecff" stroke-opacity=".65" stroke-width="2"/>
+                <path d="M19 18 V73 M39 18 V73 M59 18 V73 M79 18 V73 M0 36 H98 M0 54 H98" stroke="#c9edf8" stroke-opacity=".42" stroke-width="1.4"/>
+              </g>
+            </svg>
+            <div class="hero-message">
+              <p class="eyebrow">Mission 03 · Six sols</p>
+              <h2>Keep the crop alive. Explain why it works.</h2>
+              <p>Operate a greenhouse on Mars by balancing warmth, light, water, and a shared energy supply.</p>
+            </div>
+          </div>
+
+          <div class="hero-copy">
+            <div>
+              <p class="eyebrow">Interactive engineering mission</p>
+              <h1 id="introTitle">Three plant needs.<br>One energy budget.</h1>
+              <p class="lead">A dust storm has trapped your greenhouse in darkness. Read the sensors, adjust the equipment, and keep the crop healthy through six linked emergencies.</p>
+              <div class="learning-loop">
+                <div class="loop-step"><strong>Read</strong><span>Find the condition outside its target.</span></div>
+                <div class="loop-step"><strong>Adjust</strong><span>Set the greenhouse controls.</span></div>
+                <div class="loop-step"><strong>Explain</strong><span>Use evidence to describe the trade-off.</span></div>
+              </div>
+              <div class="theme-line"><b>Knowledge focus:</b> engineering a balanced greenhouse for temperature, light, water, and energy.</div>
+            </div>
+            <div class="hero-actions">
+              <button class="button primary" id="startLoadout" type="button">Load mission cargo →</button>
+              <button class="button ghost" id="introAbout" type="button">About the course</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-loadout" aria-labelledby="loadoutTitle">
+        <div class="loadout">
+          <div class="loadout-head">
+            <p class="eyebrow">Cargo allocation</p>
+            <h1 id="loadoutTitle">Choose three upgrades</h1>
+            <p>Your greenhouse has three equipment bays. Each upgrade changes how the greenhouse responds, but you cannot carry everything. Drag an upgrade into a bay, or tap it to load it.</p>
+          </div>
+          <div class="loadout-body">
+            <div>
+              <h2 class="section-heading">Available equipment</h2>
+              <p class="section-subtitle"><strong style="color:var(--mint)">Tap a card below to load it.</strong> Choose equipment that helps with cold, darkness, leaks, heat, and power faults.</p>
+              <div class="cargo-grid" id="cargoGrid"></div>
+            </div>
+            <aside class="cargo-side">
+              <div class="stage-panel-head">
+                <h2 class="section-heading">Greenhouse equipment bays</h2>
+                <span id="cargoCount">0 / 3</span>
+              </div>
+              <div class="slot-list" id="cargoSlots"></div>
+              <p class="loadout-note" id="loadoutNote">Select exactly three upgrades. The remaining equipment stays on the cargo ship.</p>
+              <button class="button primary" id="launchMission" type="button" disabled>Launch Mars mission</button>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-game" aria-labelledby="missionTitle">
+        <div class="game-shell">
+          <div class="game-head">
+            <div>
+              <p class="eyebrow">Mars Greenhouse A-7</p>
+              <h2 id="missionTitle">Red Horizon mission control</h2>
+            </div>
+            <div class="sol-track" id="solTrack" aria-label="Mission progress"></div>
+          </div>
+
+          <div class="game-layout">
+            <div class="scene-pane">
+              <div class="scene-visual">
+              <svg class="scene-art" viewBox="0 0 760 760" role="img" aria-label="Mars greenhouse with living crops">
+                <defs>
+                  <linearGradient id="gameSky" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#24516b"/>
+                    <stop offset=".48" stop-color="#3b5e61"/>
+                    <stop offset="1" stop-color="#9b5a3b"/>
+                  </linearGradient>
+                  <linearGradient id="gameGround" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#bd6843"/>
+                    <stop offset="1" stop-color="#633326"/>
+                  </linearGradient>
+                  <linearGradient id="gameGlass" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#b6f3dd" stop-opacity=".28"/>
+                    <stop offset="1" stop-color="#6caaa1" stop-opacity=".08"/>
+                  </linearGradient>
+                  <radialGradient id="gameCropGlow">
+                    <stop offset="0" stop-color="#79e3b6" stop-opacity=".48"/>
+                    <stop offset="1" stop-color="#79e3b6" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="gameSun">
+                    <stop offset="0" stop-color="#ffe0a5" stop-opacity=".66"/>
+                    <stop offset="1" stop-color="#ffcf8c" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="skyGlow">
+                    <stop offset="0" stop-color="#86dfff" stop-opacity=".22"/>
+                    <stop offset="1" stop-color="#86dfff" stop-opacity="0"/>
+                  </radialGradient>
+                  <linearGradient id="moonGradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f5dbb8"/>
+                    <stop offset="1" stop-color="#b98572"/>
+                  </linearGradient>
+                  <linearGradient id="solarPanel" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#67b9dd"/>
+                    <stop offset="1" stop-color="#1f607e"/>
+                  </linearGradient>
+                </defs>
+                <rect width="760" height="760" fill="url(#gameSky)"/>
+                <circle cx="610" cy="138" r="205" fill="url(#skyGlow)"/>
+                <circle cx="625" cy="155" r="118" fill="url(#gameSun)"/>
+                <circle cx="625" cy="155" r="42" fill="#ffd28d" opacity=".5"/>
+                <circle cx="132" cy="96" r="18" fill="url(#moonGradient)" opacity=".72"/>
+                <path d="M116 88 C124 82 134 84 141 90" fill="none" stroke="#8e635d" stroke-opacity=".35" stroke-width="3"/>
+                <g class="starfield" fill="#eefcff">
+                  <circle cx="46" cy="60" r="1.7"/><circle cx="82" cy="138" r="1.2"/><circle cx="112" cy="43" r="1.1"/>
+                  <circle cx="160" cy="169" r="1.6"/><circle cx="201" cy="86" r="1.2"/><circle cx="238" cy="128" r="1.8"/>
+                  <circle cx="281" cy="55" r="1"/><circle cx="315" cy="108" r="1.5"/><circle cx="351" cy="158" r="1.1"/>
+                  <circle cx="393" cy="73" r="1.8"/><circle cx="442" cy="126" r="1.3"/><circle cx="475" cy="47" r="1"/>
+                  <circle cx="515" cy="94" r="1.5"/><circle cx="558" cy="68" r="1.1"/><circle cx="694" cy="63" r="1.4"/>
+                  <circle cx="723" cy="116" r="1.8"/><circle cx="670" cy="198" r="1.1"/><circle cx="589" cy="222" r="1"/>
+                  <circle cx="276" cy="197" r=".9"/><circle cx="37" cy="213" r="1.2"/><circle cx="749" cy="185" r="1.1"/>
+                </g>
+                <g class="shooting-star" stroke="#dff8ff" stroke-linecap="round">
+                  <path d="M505 83 L552 104" stroke-width="2.2" opacity=".9"/>
+                  <path d="M552 104 L562 108" stroke-width="4" opacity=".5"/>
+                </g>
+                <path d="M0 452 L75 416 L132 440 L202 397 L285 448 L365 410 L447 452 L535 409 L620 437 L710 402 L760 423 L760 505 L0 505 Z" fill="#63352d" opacity=".64"/>
+                <path d="M0 470 C115 414 222 460 322 435 C448 404 547 355 760 409 L760 760 L0 760 Z" fill="url(#gameGround)"/>
+                <g opacity=".82">
+                  <path d="M42 424 Q72 386 102 424 Z" fill="#3e3430" stroke="#e1a179" stroke-opacity=".45" stroke-width="2"/>
+                  <path d="M97 423 Q122 395 147 423 Z" fill="#423630" stroke="#f0b184" stroke-opacity=".35" stroke-width="2"/>
+                  <rect x="64" y="423" width="17" height="19" rx="2" fill="#3b3a35"/>
+                  <rect x="113" y="423" width="14" height="16" rx="2" fill="#3b3a35"/>
+                  <circle cx="72" cy="427" r="2" fill="#f5cc70" class="habitat-light"/>
+                  <circle cx="120" cy="427" r="2" fill="#78e3b6" class="habitat-light"/>
+                </g>
+                <path d="M0 500 C133 462 260 503 381 474 C538 437 639 439 760 476" fill="none" stroke="#ffb07b" stroke-opacity=".28" stroke-width="3"/>
+                <path d="M0 568 C152 524 277 557 405 534 C557 507 649 506 760 534" fill="none" stroke="#46231d" stroke-opacity=".53" stroke-width="6"/>
+                <ellipse cx="384" cy="644" rx="300" ry="38" fill="#130e0e" opacity=".4"/>
+                <g id="greenhouseStructure" transform="translate(186 216)">
+                  <path d="M25 370 C28 183 93 71 203 14 C317 72 379 183 384 370 Z" fill="url(#gameGlass)" stroke="#c4f1df" stroke-opacity=".43" stroke-width="2"/>
+                  <path d="M203 17 L203 370 M86 122 L319 122 M26 258 L380 258" fill="none" stroke="#c7f2e2" stroke-opacity=".2" stroke-width="2"/>
+                  <path id="curtainVisual" d="M31 366 C32 183 93 72 203 16 C313 73 374 184 376 366 Z" fill="#88a79a" opacity="0"/>
+                  <path d="M4 370 H397" stroke="#e0fff2" stroke-opacity=".52" stroke-width="5" stroke-linecap="round"/>
+                  <ellipse cx="203" cy="349" rx="158" ry="36" fill="url(#gameCropGlow)"/>
+                  <g class="plants-breathe" stroke="#83dfb7" stroke-width="4" stroke-linecap="round">
+                    <g id="plants">
+                    <path d="M95 360 V304 M95 334 C75 327 67 309 68 294 C88 296 96 309 95 334 Z" fill="#68cba2" stroke-width="2"/>
+                    <path d="M143 360 V283 M143 321 C123 314 115 297 116 281 C135 283 143 297 143 321 Z" fill="#75dab0" stroke-width="2"/>
+                    <path d="M192 360 V268 M192 312 C173 305 164 288 166 272 C184 274 192 288 192 312 Z" fill="#87e8be" stroke-width="2"/>
+                    <path d="M242 360 V287 M242 326 C222 319 213 302 215 286 C234 288 242 302 242 326 Z" fill="#75dab0" stroke-width="2"/>
+                    <path d="M291 360 V312 M291 341 C271 334 263 317 264 302 C283 304 291 317 291 341 Z" fill="#68cba2" stroke-width="2"/>
+                    </g>
+                  </g>
+                  <g transform="translate(337 185)">
+                    <rect width="59" height="91" rx="12" fill="#10231e" stroke="#9ce3c6" stroke-opacity=".36"/>
+                    <rect x="10" y="13" width="39" height="9" rx="4.5" fill="#6ce0b2"/>
+                    <rect x="10" y="30" width="28" height="5" rx="2.5" fill="#eef9f4" opacity=".67"/>
+                    <rect x="10" y="42" width="35" height="5" rx="2.5" fill="#eef9f4" opacity=".34"/>
+                    <circle cx="18" cy="69" r="5" fill="#f5ca68"/>
+                    <circle cx="35" cy="69" r="5" fill="#6ce0b2"/>
+                  </g>
+                  <g transform="translate(61 299)">
+                    <g class="astronaut-bob">
+                      <ellipse cx="0" cy="60" rx="20" ry="5" fill="#0a1713" opacity=".46"/>
+                      <path d="M-10 37 L-13 57 M9 37 L13 56" stroke="#e68d55" stroke-width="8" stroke-linecap="round"/>
+                      <path d="M-17 18 Q0 8 17 18 L14 42 Q0 48 -14 42 Z" fill="#f3a25e"/>
+                      <path d="M-11 19 Q0 14 11 19" fill="none" stroke="#ffd3a0" stroke-opacity=".7" stroke-width="2"/>
+                      <circle cx="0" cy="5" r="15" fill="#eaf6f0"/>
+                      <circle cx="1" cy="5" r="10" fill="#193432"/>
+                      <path d="M-5 3 Q2 0 8 5" fill="none" stroke="#7de6bf" stroke-width="2" stroke-linecap="round"/>
+                      <g class="astronaut-arm">
+                        <path d="M14 20 L28 9" stroke="#ef9a5c" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="29" cy="8" r="4" fill="#e9f5ef"/>
+                      </g>
+                      <path d="M-13 22 L-28 32" stroke="#ef9a5c" stroke-width="6" stroke-linecap="round"/>
+                      <g transform="translate(-35 30)">
+                        <rect width="17" height="13" rx="3" fill="#78b9ca"/>
+                        <path d="M14 4 Q22 4 20 11" fill="none" stroke="#9fe8d1" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M-2 15 l-2 5 M4 15 l0 6 M10 15 l2 5" stroke="#7dd2ff" stroke-width="2" stroke-linecap="round"/>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+                <g class="solar-glow" transform="translate(589 438) rotate(-8)">
+                  <path d="M20 83 L49 31" stroke="#d4c9b8" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M49 31 L80 83" stroke="#d4c9b8" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="0" y="18" width="98" height="55" rx="4" fill="url(#solarPanel)" stroke="#bcecff" stroke-opacity=".65" stroke-width="2"/>
+                  <path d="M19 18 V73 M39 18 V73 M59 18 V73 M79 18 V73 M0 36 H98 M0 54 H98" stroke="#c9edf8" stroke-opacity=".42" stroke-width="1.4"/>
+                </g>
+                <g opacity=".55" stroke="#f0b88e" stroke-width="2" stroke-linecap="round">
+                  <path d="M74 515 l22 -10"/><path d="M672 523 l28 -12"/><path d="M116 589 l31 -15"/><path d="M640 611 l21 -9"/>
+                </g>
+              </svg>
+              <div class="weather-fx" id="weatherFx" aria-hidden="true"></div>
+              <div class="scene-shade"></div>
+              <div class="stage-flash" id="stageFlash" aria-hidden="true"></div>
+              <div class="scene-topline">
+                <span class="location-chip">HABITAT / GREENHOUSE A-7</span>
+                <span class="weather-chip" id="weatherChip">DUST STORM</span>
+              </div>
+              <button class="sensor-hotspot" data-sensor="temp" data-label="Temperature sensor" style="left:44%;top:57%;" aria-label="Inspect temperature sensor"></button>
+              <button class="sensor-hotspot" data-sensor="light" data-label="Canopy light sensor" style="left:62%;top:42%;" aria-label="Inspect light sensor"></button>
+              <button class="sensor-hotspot" data-sensor="water" data-label="Water reserve sensor" style="left:38%;top:69%;" aria-label="Inspect water sensor"></button>
+              <button class="sensor-hotspot" data-sensor="battery" data-label="Battery reserve sensor" style="left:73%;top:67%;" aria-label="Inspect battery sensor"></button>
+              <div class="sensor-toast" id="sensorToast" role="status"></div>
+              </div>
+              <div class="telemetry-panel">
+                <div class="telemetry-head">
+                  <strong>Greenhouse readings</strong>
+                  <span>Live / forecast</span>
+                </div>
+                <div class="sensor-grid" id="sensorGrid" aria-label="Greenhouse sensor readings"></div>
+              </div>
+            </div>
+
+            <div class="console">
+              <div class="console-scroll">
+                <div class="mission-kicker">
+                  <p class="eyebrow" id="stageLabel">Sol 1 · Heat balance</p>
+                  <span class="sol-number" id="solLabel">SOL 01 / 06</span>
+                </div>
+                <div class="briefing">
+                  <div class="briefing-row">
+                    <div>
+                      <h3 id="scenarioTitle">Cold snap after sunset</h3>
+                      <p id="scenarioText">The storm has blocked the weak afternoon sun. Adjust the greenhouse controls and run the simulation.</p>
+                    </div>
+                    <div class="right-health">
+                      <span>Crop health</span>
+                      <strong id="sceneHealth">82%</strong>
+                    </div>
+                  </div>
+                  <div class="current-situation">
+                    <p class="eyebrow" id="sceneLabel">Mission control · SOL 01</p>
+                    <strong id="sceneTitle">The canopy is too cold.</strong>
+                    <p id="sceneText">Plants need warmth, but the heater system consumes stored energy.</p>
+                  </div>
+                  <div class="stage-goal"><b>Goal</b><span id="stageGoal">Keep the canopy between 18–26°C and light above 55%.</span></div>
+                  <div class="how-to">
+                    <div class="how-to-head">What to do</div>
+                    <ol class="guide-steps" id="guideSteps"></ol>
+                  </div>
+                </div>
+
+                <div class="interaction-zone">
+                  <div class="interaction-label">
+                    <span>Your controls</span>
+                    <span>Take action here</span>
+                  </div>
+                  <p class="interaction-prompt" id="interactionPrompt">Tap two or three insulation panels, then turn on the grow lamp if light becomes too low.</p>
+                  <div class="stage-panel" id="stagePanel"></div>
+
+                  <div class="decision-bar">
+                    <span class="decision-hint" id="decisionHint">Changes preview live. Run the simulation when your controls are ready.</span>
+                    <button class="button primary" id="commitStep" type="button">Run simulation</button>
+                  </div>
+                </div>
+
+                <div class="feedback" id="feedbackPanel" aria-live="polite">
+                  <div class="feedback-top">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                    System response
+                  </div>
+                  <h4 id="feedbackTitle"></h4>
+                  <p id="feedbackText"></p>
+                  <div class="delta-row" id="deltaRow"></div>
+                  <span class="knowledge-tag" id="knowledgeTag"></span>
+                  <button class="button primary" id="nextStage" type="button">Continue</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-evidence" aria-labelledby="evidenceTitle">
+        <div class="evidence-shell">
+          <div class="evidence-head">
+            <p class="eyebrow">Final analysis</p>
+            <h1 id="evidenceTitle">Build your evidence trail</h1>
+            <p>Choose at least two results from your mission. Then explain how your actions changed more than one greenhouse system.</p>
+          </div>
+          <div class="evidence-body">
+            <div>
+              <div class="evidence-section-head">
+                <h2 class="section-heading">Evidence collected</h2>
+                <span class="evidence-step">Step 1</span>
+              </div>
+              <p class="evidence-instruction">Tap “Add +” on at least two evidence cards below.</p>
+              <div class="evidence-list" id="evidenceList"></div>
+            </div>
+            <aside class="evidence-builder">
+              <div class="evidence-section-head">
+                <h2 class="section-heading">Explain the system</h2>
+                <span class="evidence-step">Step 2</span>
+              </div>
+              <p class="section-subtitle">Start with a claim, then connect it to two pieces of evidence.</p>
+              <label class="claim-label" for="claimInput">Your scientific explanation</label>
+              <textarea class="claim-field" id="claimInput" placeholder="I claim that balancing greenhouse systems requires trade-offs because..."></textarea>
+              <div class="evidence-slots" id="evidenceSlots"></div>
+              <div class="builder-checks" id="builderChecks"></div>
+              <div class="evidence-actions">
+                <button class="button primary" id="generateReport" type="button" disabled>Generate mission report</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-debrief" aria-labelledby="reportTitle">
+        <div class="report-shell">
+          <div class="report-hero">
+            <span class="outcome-badge" id="missionOutcome">Mission complete</span>
+            <h1 id="reportTitle">Mission report</h1>
+            <p id="reportSummary"></p>
+            <div class="report-actions no-print">
+              <button class="button primary" id="replayMission" type="button">Run a new mission</button>
+              <button class="button ghost" id="reportAbout" type="button">About the course</button>
+              <button class="button ghost" id="printReport" type="button">Print report</button>
+            </div>
+          </div>
+          <div class="report-grid">
+            <div>
+              <h2>Final greenhouse status</h2>
+              <div class="final-metrics" id="finalMetrics"></div>
+              <h2 style="margin-top:24px;">Decision timeline</h2>
+              <div class="timeline" id="timeline"></div>
+            </div>
+            <aside class="report-note">
+              <h2>Your scientific explanation</h2>
+              <p>The final explanation below is the evidence for Learning Outcome 2.</p>
+              <div class="submitted-claim" id="submittedClaim"></div>
+              <div style="margin-top:16px;" id="submittedEvidence"></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-about" aria-labelledby="aboutTitle">
+        <div class="about-shell">
+          <div class="about-hero">
+            <p class="eyebrow">About the course</p>
+            <h1 id="aboutTitle">Red Horizon</h1>
+            <p>In this interactive game, learn how greenhouse engineers balance temperature, light, water, and energy to keep crops healthy in a Mars habitat.</p>
+          </div>
+          <div class="about-content">
+            <div>
+              <section class="about-section">
+                <h2>STEM Topic and Branch</h2>
+                <div class="topic-grid">
+                  <div class="topic-card">
+                    <span>STEM Topic</span>
+                    <strong>Greenhouse environment control and resource management</strong>
+                  </div>
+                  <div class="topic-card">
+                    <span>Branch of STEM</span>
+                    <strong>Engineering, supported by plant and environmental science</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section class="about-section">
+                <h2>How the game supports learning</h2>
+                <p class="support-copy">Students adjust temperature, light, water, and energy controls, then observe how one change affects the others. Immediate feedback and an evidence notebook guide them from noticing a result to explaining the science.</p>
+                <div class="theory-strip">
+                  <div class="theory-item"><b>Warmth</b>Plants need a suitable temperature.</div>
+                  <div class="theory-item"><b>Light</b>Plants need light for growth.</div>
+                  <div class="theory-item"><b>Water</b>Water can be conserved and recycled.</div>
+                  <div class="theory-item"><b>Energy</b>Every control uses one shared battery.</div>
+                </div>
+              </section>
+            </div>
+
+            <aside>
+              <section class="about-section">
+                <h2>Learning Outcomes</h2>
+                <div class="abcd-legend" aria-label="ABCD learning outcome key">
+                  <span class="abcd-key abcd-a">AUDIENCE</span>
+                  <span class="abcd-key abcd-b">BEHAVIOUR</span>
+                  <span class="abcd-key abcd-c">CONDITION</span>
+                  <span class="abcd-key abcd-d">DEGREE</span>
+                </div>
+                <div class="outcome-list">
+                  <div class="outcome-card">
+                    <p><span class="abcd-c">Given limited battery and water,</span> <span class="abcd-a">Secondary 4–6 students (Grades 10–12, ages 15–18)</span> will <span class="abcd-b">adjust greenhouse heating, lighting, and water systems</span> <span class="abcd-d">to keep canopy temperature between 18°C and 26°C and crop health at or above 60%.</span></p>
+                  </div>
+                  <div class="outcome-card">
+                    <p><span class="abcd-c">Given sensor readings and action results,</span> <span class="abcd-a">Secondary 4–6 students (Grades 10–12, ages 15–18)</span> will <span class="abcd-b">correctly explain at least two trade-offs among temperature, light, water, and energy,</span> <span class="abcd-d">using at least two specific pieces of evidence.</span></p>
+                  </div>
+                </div>
+                <p class="assignment-meta">Six linked challenges · 15–20 minutes · Immediate feedback · Evidence-based debrief</p>
+              </section>
+            </aside>
+          </div>
+          <div class="about-actions">
+            <button class="button primary" id="aboutBack" type="button">Back to mission</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const upgrades = {
+      curtain: {
+        id: "curtain",
+        code: "T",
+        name: "Thermal curtain",
+        description: "Traps heat during cold periods, but reduces incoming light when closed.",
+        effect: "Stronger warming · light penalty"
+      },
+      lights: {
+        id: "lights",
+        code: "L",
+        name: "LED grow bank",
+        description: "Adds more usable light for photosynthesis, with a higher battery load.",
+        effect: "+30% lamp light · higher power use"
+      },
+      recycler: {
+        id: "recycler",
+        code: "W",
+        name: "Water recycler",
+        description: "Recovers more condensate and reduces water lost during system changes.",
+        effect: "+50% recycled water · lower losses"
+      },
+      battery: {
+        id: "battery",
+        code: "B",
+        name: "Extra battery",
+        description: "Starts the mission with a larger reserve for heaters and lights.",
+        effect: "+20% starting battery"
+      }
+    };
+
+    const sensorInfo = {
+      temp: {
+        label: "Canopy temperature",
+        shortLabel: "Canopy",
+        unit: "°C",
+        target: "Target 18–26°C",
+        compactTarget: "18–26°C",
+        max: 40,
+        meaning: "Plants grow within a suitable warmth range. Heat leaves the greenhouse through its shell."
+      },
+      light: {
+        label: "Usable light",
+        shortLabel: "Light",
+        unit: "%",
+        target: "Keep above 55%",
+        compactTarget: "≥55%",
+        max: 100,
+        meaning: "Light provides energy for plant growth. Grow lamps help, but they use battery power."
+      },
+      water: {
+        label: "Water reserve",
+        shortLabel: "Water",
+        unit: "%",
+        target: "Keep above 35%",
+        compactTarget: "≥35%",
+        max: 100,
+        meaning: "Plants need water for healthy growth. Recycled condensate can return water to the reserve."
+      },
+      battery: {
+        label: "Battery reserve",
+        shortLabel: "Power",
+        unit: "%",
+        target: "Keep above 20%",
+        compactTarget: "≥20%",
+        max: 100,
+        meaning: "Heating, lighting, and recycling all draw from the same limited energy supply."
+      }
+    };
+
+    const stages = [
+      {
+        sol: 1,
+        type: "panels",
+        weatherType: "cold",
+        tag: "Heat balance",
+        weather: "COLD NIGHT",
+        title: "Cold snap after sunset",
+        text: "The storm has blocked the afternoon sun, and the canopy is losing heat quickly.",
+        goal: "Keep canopy temperature between 18°C and 26°C while keeping usable light above 55%.",
+        prompt: "Tap two or three insulation panels below, then turn on the grow lamp if light becomes too low.",
+        guide: [
+          "Tap two or three insulation panels to keep heat inside.",
+          "Check the predicted light reading. Switch on the grow lamp if it falls below 55%.",
+          "Compare all four predicted readings, then run the night cycle."
+        ],
+        sceneLabel: "Mission control · SOL 01",
+        sceneTitle: "The canopy is too cold.",
+        sceneText: "Plants need warmth, but every heater system consumes stored energy.",
+        drift: { temp: -1.5, light: -6, water: -3, battery: -1 },
+        controls: [
+          { key: "climate", label: "Heater power", min: 0, max: 100, step: 5, effect: { temp: 12, water: -1, battery: -13 }, left: "Uses stored power", right: "Raises warmth" },
+          { key: "cover", label: "Thermal curtain", min: 0, max: 100, step: 5, effect: { temp: 8, light: -18, battery: -1 }, left: "Blocks light", right: "Retains heat", upgrade: "curtain" },
+          { key: "lamps", label: "Grow-lamp power", min: 0, max: 100, step: 5, effect: { temp: 2.5, light: 55, water: -1, battery: -11 }, left: "Uses stored power", right: "Adds light", upgrade: "lights" }
+        ],
+        knowledge: "Insulation slows heat loss, but some materials also reduce the light reaching the crop."
+      },
+      {
+        sol: 2,
+        type: "dispatch",
+        weatherType: "storm",
+        tag: "Light and energy",
+        weather: "DUST STORM",
+        title: "The storm blocks the sun",
+        text: "Thick dust is blocking the sun while the battery has only enough reserve for a short response.",
+        goal: "Restore enough light for growth without letting temperature or battery become unsafe.",
+        prompt: "Use + to assign all six energy units, then tap “Dispatch energy.”",
+        guide: [
+          "Assign energy to warmth if the canopy is below 18°C.",
+          "Give more energy to light when usable light is below 55%.",
+          "Use the remaining units for water, then dispatch the energy."
+        ],
+        sceneLabel: "Mission control · SOL 02",
+        sceneTitle: "The sky has turned brown.",
+        sceneText: "The plants need light, but the battery must still power heating and water systems.",
+        drift: { temp: -3, light: -20, water: -2, battery: -1 },
+        controls: [
+          { key: "climate", label: "Heater power", min: 0, max: 100, step: 5, effect: { temp: 12, water: -1, battery: -13 }, left: "Uses stored power", right: "Raises warmth" },
+          { key: "cover", label: "Thermal curtain", min: 0, max: 100, step: 5, effect: { temp: 8, light: -18, battery: -1 }, left: "Blocks light", right: "Retains heat", upgrade: "curtain" },
+          { key: "lamps", label: "Grow-lamp power", min: 0, max: 100, step: 5, effect: { temp: 2.5, light: 55, water: -1, battery: -11 }, left: "Uses stored power", right: "Adds light", upgrade: "lights" }
+        ],
+        knowledge: "Photosynthesis needs light. Backup lighting restores part of the missing solar energy, but consumes the shared battery."
+      },
+      {
+        sol: 3,
+        type: "repair",
+        weatherType: "leak",
+        tag: "Water recycling",
+        weather: "WATER LEAK",
+        title: "The water loop has opened",
+        text: "A seal has broken, and the greenhouse is losing recycled water through a bypass line.",
+        goal: "Protect the water reserve by closing the leak and reconnecting the recycling loop.",
+        prompt: "Tap valves A and C to open them, tap B to close the leak, then test the water loop.",
+        guide: [
+          "Open valve A so condensation can enter the recycling route.",
+          "Close valve B to stop the bypass leak.",
+          "Open valve C to send water into storage, then test the loop."
+        ],
+        sceneLabel: "Engineering alert · SOL 03",
+        sceneTitle: "Water is leaving the loop.",
+        sceneText: "A closed greenhouse should reuse water instead of losing it to the habitat floor.",
+        knowledge: "A closed water loop captures condensation and returns it to the crop, reducing the need for a new water supply."
+      },
+      {
+        sol: 4,
+        type: "zones",
+        weatherType: "heat",
+        tag: "Cooling trade-offs",
+        weather: "HEAT SPIKE",
+        title: "The greenhouse is overheating",
+        text: "The dust is clearing, but sunlight is now trapping too much heat near some crop zones.",
+        goal: "Cool the greenhouse toward 18–26°C by venting the two hottest zones.",
+        prompt: "Tap the two hottest zone cards below, then tap “Vent selected zones.”",
+        guide: [
+          "Compare the temperature shown in all four greenhouse zones.",
+          "Tap the two zones with the highest temperatures.",
+          "Check the predicted water reading, then vent the selected zones."
+        ],
+        sceneLabel: "Mission control · SOL 04",
+        sceneTitle: "The canopy is overheating.",
+        sceneText: "Opening the greenhouse or using shade can cool the crop, but both change light or water conditions.",
+        drift: { temp: 13, light: 20, water: -4, battery: 7 },
+        zones: [
+          { id: "grow", name: "Grow deck A", temp: 35, cooling: 5.6 },
+          { id: "storage", name: "Seed storage", temp: 31, cooling: 3.2 },
+          { id: "seedling", name: "Seedling bay", temp: 23, cooling: 1.4 },
+          { id: "irrigation", name: "Irrigation aisle", temp: 38, cooling: 6.4 }
+        ],
+        controls: [
+          { key: "climate", label: "Ventilation", min: 0, max: 100, step: 5, effect: { temp: -18, water: -6, battery: -2 }, left: "Dries the air", right: "Removes heat" },
+          { key: "cover", label: "Shade cover", min: 0, max: 100, step: 5, effect: { temp: -6, light: -35, battery: -0.5 }, left: "Blocks light", right: "Reduces heat" },
+          { key: "lamps", label: "Grow-lamp power", min: 0, max: 100, step: 5, effect: { temp: 2.5, light: 55, water: -1, battery: -11 }, left: "Uses stored power", right: "Adds light", upgrade: "lights" }
+        ],
+        knowledge: "Cooling a greenhouse can use water or reduce light. Engineering choices often solve one problem by creating a smaller cost elsewhere."
+      },
+      {
+        sol: 5,
+        type: "sequence",
+        weatherType: "fault",
+        tag: "Emergency response",
+        weather: "POWER FAULT",
+        title: "The battery bank has failed",
+        text: "The main battery bank is unstable, and the crop will lose environmental control unless the fault is handled safely.",
+        goal: "Protect the crop by restoring power in a safe engineering order.",
+        prompt: "Tap all four emergency actions in a safe order, then run the emergency sequence.",
+        guide: [
+          "Find the fault before changing the power system.",
+          "Separate the damaged battery bank from the working system.",
+          "Connect backup power, then restart greenhouse controls."
+        ],
+        sceneLabel: "Engineering alert · SOL 05",
+        sceneTitle: "The main power bank is unstable.",
+        sceneText: "Diagnosing and isolating the fault comes before restarting greenhouse systems.",
+        sequence: [
+          { id: "backup", title: "Connect the backup power loop", note: "Restore a safe energy supply." },
+          { id: "restart", title: "Restart greenhouse controls", note: "Return heating and lighting to normal operation." },
+          { id: "diagnose", title: "Confirm the low-voltage alert", note: "Check which power bank has failed." },
+          { id: "isolate", title: "Isolate the damaged battery bank", note: "Stop the fault from affecting the whole system." }
+        ],
+        correctOrder: ["diagnose", "isolate", "backup", "restart"],
+        knowledge: "A safe engineering response protects the critical system first, then restores normal operation."
+      },
+      {
+        sol: 6,
+        type: "stabilize",
+        weatherType: "harvest",
+        tag: "System balance",
+        weather: "DUST THINNING",
+        title: "Prepare for the final harvest",
+        text: "The storm is ending, but the crop must remain stable through one last change in sunlight and temperature.",
+        goal: "Keep temperature, light, and water inside their target ranges until harvest.",
+        prompt: "Tap Start, then use +Warm, +Light, and +Water before any reading leaves its safe range.",
+        guide: [
+          "Press Start to begin the 12-second harvest window.",
+          "Watch the four readings as they begin to fall.",
+          "Tap a boost before warmth, light, or water leaves its safe range."
+        ],
+        sceneLabel: "Mission control · SOL 06",
+        sceneTitle: "The sky is becoming visible.",
+        sceneText: "The harvest depends on the system balance you create.",
+        drift: { temp: -3, light: 8, water: -5, battery: 4 },
+        controls: [
+          { key: "climate", label: "Heater power", min: 0, max: 100, step: 5, effect: { temp: 12, water: -1, battery: -13 }, left: "Uses stored power", right: "Raises warmth" },
+          { key: "cover", label: "Thermal curtain", min: 0, max: 100, step: 5, effect: { temp: 8, light: -18, battery: -1 }, left: "Blocks light", right: "Retains heat", upgrade: "curtain" },
+          { key: "lamps", label: "Grow-lamp power", min: 0, max: 100, step: 5, effect: { temp: 2.5, light: 55, water: -1, battery: -11 }, left: "Uses stored power", right: "Adds light", upgrade: "lights" }
+        ],
+        knowledge: "A balanced greenhouse keeps all plant needs within range without exhausting the shared energy reserve."
+      }
+    ];
+
+    const initialMetrics = { temp: 13.5, light: 31, water: 76, battery: 48, health: 82 };
+    let selectedUpgrades = [];
+    let aboutReturnView = "intro";
+    let state = {
+      loaded: false,
+      stageIndex: 0,
+      metrics: { ...initialMetrics },
+      controls: {},
+      preview: null,
+      history: [],
+      insulationPanels: 0,
+      lampBoost: false,
+      heaterBoost: false,
+      powerTokens: { climate: 0, lamps: 0, water: 0 },
+      ventZones: [],
+      repairValves: { A: false, B: true, C: false },
+      sequence: [],
+      evidence: [],
+      claim: "",
+      feedbackOpen: false,
+      inspected: new Set(),
+      harvestTimer: null,
+      harvestElapsed: 0
+    };
+
+    const views = {
+      intro: document.getElementById("view-intro"),
+      loadout: document.getElementById("view-loadout"),
+      game: document.getElementById("view-game"),
+      evidence: document.getElementById("view-evidence"),
+      debrief: document.getElementById("view-debrief"),
+      about: document.getElementById("view-about")
+    };
+
+    const dom = {
+      headerStatus: document.getElementById("headerStatus"),
+      cargoGrid: document.getElementById("cargoGrid"),
+      cargoSlots: document.getElementById("cargoSlots"),
+      cargoCount: document.getElementById("cargoCount"),
+      loadoutNote: document.getElementById("loadoutNote"),
+      launchMission: document.getElementById("launchMission"),
+      solTrack: document.getElementById("solTrack"),
+      scenePane: document.querySelector(".scene-pane"),
+      weatherFx: document.getElementById("weatherFx"),
+      stageFlash: document.getElementById("stageFlash"),
+      curtainVisual: document.getElementById("curtainVisual"),
+      greenhouseStructure: document.getElementById("greenhouseStructure"),
+      weatherChip: document.getElementById("weatherChip"),
+      sceneLabel: document.getElementById("sceneLabel"),
+      sceneTitle: document.getElementById("sceneTitle"),
+      sceneText: document.getElementById("sceneText"),
+      sceneHealth: document.getElementById("sceneHealth"),
+      plants: document.getElementById("plants"),
+      sensorToast: document.getElementById("sensorToast"),
+      stageLabel: document.getElementById("stageLabel"),
+      solLabel: document.getElementById("solLabel"),
+      scenarioTitle: document.getElementById("scenarioTitle"),
+      scenarioText: document.getElementById("scenarioText"),
+      stageGoal: document.getElementById("stageGoal"),
+      guideSteps: document.getElementById("guideSteps"),
+      interactionPrompt: document.getElementById("interactionPrompt"),
+      sensorGrid: document.getElementById("sensorGrid"),
+      stagePanel: document.getElementById("stagePanel"),
+      decisionHint: document.getElementById("decisionHint"),
+      commitStep: document.getElementById("commitStep"),
+      feedbackPanel: document.getElementById("feedbackPanel"),
+      feedbackTitle: document.getElementById("feedbackTitle"),
+      feedbackText: document.getElementById("feedbackText"),
+      deltaRow: document.getElementById("deltaRow"),
+      knowledgeTag: document.getElementById("knowledgeTag"),
+      nextStage: document.getElementById("nextStage"),
+      evidenceList: document.getElementById("evidenceList"),
+      evidenceSlots: document.getElementById("evidenceSlots"),
+      claimInput: document.getElementById("claimInput"),
+      builderChecks: document.getElementById("builderChecks"),
+      generateReport: document.getElementById("generateReport"),
+      missionOutcome: document.getElementById("missionOutcome"),
+      reportSummary: document.getElementById("reportSummary"),
+      finalMetrics: document.getElementById("finalMetrics"),
+      timeline: document.getElementById("timeline"),
+      submittedClaim: document.getElementById("submittedClaim"),
+      submittedEvidence: document.getElementById("submittedEvidence")
+    };
+
+    function roundOne(value) {
+      return Math.round(value * 10) / 10;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showView(name) {
+      Object.entries(views).forEach(([key, view]) => view.classList.toggle("active", key === name));
+      updateHeaderStatus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateHeaderStatus() {
+      if (views.about.classList.contains("active")) {
+        dom.headerStatus.textContent = "Course information";
+      } else if (views.evidence.classList.contains("active")) {
+        dom.headerStatus.textContent = "Building evidence";
+      } else if (views.debrief.classList.contains("active")) {
+        dom.headerStatus.textContent = "Mission analysed";
+      } else if (views.loadout.classList.contains("active")) {
+        dom.headerStatus.textContent = `Cargo ${selectedUpgrades.length} of 3`;
+      } else if (views.game.classList.contains("active")) {
+        dom.headerStatus.textContent = `Sol ${state.stageIndex + 1} of 6`;
+      } else {
+        dom.headerStatus.textContent = "Mission ready";
+      }
+    }
+
+    function hasUpgrade(id) {
+      return selectedUpgrades.includes(id);
+    }
+
+    function renderCargo() {
+      dom.cargoGrid.innerHTML = Object.values(upgrades).map(item => `
+        <button class="cargo-card ${selectedUpgrades.includes(item.id) ? "selected" : ""}" type="button" data-upgrade="${item.id}" draggable="true" aria-pressed="${selectedUpgrades.includes(item.id)}">
+          <span class="equipment-mark">${item.code}</span>
+          <h3>${item.name}</h3>
+          <p>${item.description}</p>
+          <small>${item.effect}</small>
+          <span class="cargo-action">
+            <span>${selectedUpgrades.includes(item.id) ? "Loaded · tap to remove" : "Tap to load"}</span>
+            <span aria-hidden="true">${selectedUpgrades.includes(item.id) ? "✓" : "→"}</span>
+          </span>
+        </button>
+      `).join("");
+
+      dom.cargoSlots.innerHTML = [0,1,2].map(index => {
+        const id = selectedUpgrades[index];
+        const item = id ? upgrades[id] : null;
+        return `
+          <div class="cargo-slot ${item ? "filled" : ""}" data-slot="${index}">
+            <span class="slot-number">${String(index + 1).padStart(2, "0")}</span>
+            <span class="slot-copy">
+              <strong>${item ? item.name : "Empty equipment bay"}</strong>
+              <span>${item ? item.effect : "Drag a module here"}</span>
+            </span>
+          </div>
+        `;
+      }).join("");
+
+      dom.cargoCount.textContent = `${selectedUpgrades.length} / 3`;
+      dom.launchMission.disabled = selectedUpgrades.length !== 3;
+      dom.loadoutNote.textContent = selectedUpgrades.length === 3
+        ? "Cargo secured. Launch when you are ready."
+        : `Select ${3 - selectedUpgrades.length} more upgrade${selectedUpgrades.length === 2 ? "" : "s"}. Tap a loaded module to remove it.`;
+      updateHeaderStatus();
+      attachCargoEvents();
+    }
+
+    function toggleUpgrade(id) {
+      if (selectedUpgrades.includes(id)) {
+        selectedUpgrades = selectedUpgrades.filter(item => item !== id);
+      } else if (selectedUpgrades.length < 3) {
+        selectedUpgrades.push(id);
+      }
+      renderCargo();
+    }
+
+    function attachCargoEvents() {
+      dom.cargoGrid.querySelectorAll("[data-upgrade]").forEach(card => {
+        card.addEventListener("click", () => toggleUpgrade(card.dataset.upgrade));
+        card.addEventListener("dragstart", event => {
+          event.dataTransfer.setData("text/plain", card.dataset.upgrade);
+          event.dataTransfer.effectAllowed = "copy";
+        });
+      });
+
+      dom.cargoSlots.querySelectorAll(".cargo-slot").forEach(slot => {
+        slot.addEventListener("dragover", event => {
+          event.preventDefault();
+          slot.classList.add("dragover");
+        });
+        slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
+        slot.addEventListener("drop", event => {
+          event.preventDefault();
+          slot.classList.remove("dragover");
+          const id = event.dataTransfer.getData("text/plain");
+          if (!id || !upgrades[id] || selectedUpgrades.includes(id) || selectedUpgrades.length >= 3) return;
+          selectedUpgrades.push(id);
+          renderCargo();
+        });
+      });
+    }
+
+    function resetMissionState() {
+      state = {
+        loaded: true,
+        stageIndex: 0,
+        metrics: {
+          ...initialMetrics,
+          battery: initialMetrics.battery + (hasUpgrade("battery") ? 20 : 0)
+        },
+        controls: {},
+        preview: null,
+        history: [],
+        insulationPanels: 0,
+        lampBoost: false,
+        heaterBoost: false,
+        powerTokens: { climate: 0, lamps: 0, water: 0 },
+        ventZones: [],
+        repairValves: { A: false, B: true, C: false },
+        sequence: [],
+        evidence: [],
+        claim: "",
+        feedbackOpen: false,
+        inspected: new Set(),
+        harvestTimer: null,
+        harvestElapsed: 0
+      };
+    }
+
+    function launchMission() {
+      if (selectedUpgrades.length !== 3) return;
+      resetMissionState();
+      renderSolTrack();
+      renderStage();
+      showView("game");
+    }
+
+    function renderSolTrack() {
+      dom.solTrack.innerHTML = stages.map((stage, index) => `
+        <span class="sol-dot ${index < state.stageIndex ? "done" : ""} ${index === state.stageIndex ? "current" : ""}"></span>
+      `).join("");
+    }
+
+    function getStage() {
+      return stages[state.stageIndex];
+    }
+
+    function metricStatus(key, value) {
+      if (key === "temp") {
+        if (value >= 18 && value <= 26) return "good";
+        if (value >= 15 && value <= 29) return "warn";
+        return "bad";
+      }
+      const thresholds = { light: [55, 40], water: [35, 20], battery: [20, 10] };
+      if (value >= thresholds[key][0]) return "good";
+      if (value >= thresholds[key][1]) return "warn";
+      return "bad";
+    }
+
+    function meterWidth(key, value) {
+      return clamp((value / sensorInfo[key].max) * 100, 0, 100);
+    }
+
+    function renderSensors(metrics = state.preview?.metrics || state.metrics) {
+      dom.sensorGrid.innerHTML = Object.entries(sensorInfo).map(([key, info]) => {
+        const value = key === "temp" ? roundOne(metrics[key]).toFixed(1) : Math.round(metrics[key]);
+        const status = metricStatus(key, metrics[key]);
+        const statusWord = status === "good" ? "OK" : status === "warn" ? "WATCH" : "CHECK";
+        const marker = key === "temp"
+          ? '<span class="meter-target" style="left:45%"></span><span class="meter-target" style="left:65%"></span>'
+          : `<span class="meter-target" style="left:${key === "light" ? 55 : key === "water" ? 35 : 20}%"></span>`;
+        return `
+          <button class="sensor-card ${status}" type="button" data-sensor="${key}" style="--sensor-color:${key === "temp" ? "#f39a70" : key === "light" ? "#f5cc70" : key === "water" ? "#7dd2ff" : "#78e3b6"}">
+            <span class="sensor-top"><span>${info.shortLabel}</span><span class="band-state">${statusWord}</span></span>
+            <span class="sensor-value"><strong>${value}</strong><span>${info.unit}</span></span>
+            <span class="meter"><span class="meter-fill" style="width:${meterWidth(key, metrics[key])}%"></span>${marker}</span>
+            <span class="sensor-target">${state.preview ? "Est. " : ""}${info.compactTarget}</span>
+          </button>
+        `;
+      }).join("");
+
+      dom.sensorGrid.querySelectorAll("[data-sensor]").forEach(card => {
+        card.addEventListener("click", () => inspectSensor(card.dataset.sensor));
+      });
+      dom.sceneHealth.textContent = `${Math.round(metrics.health)}%`;
+      dom.plants.style.transform = metrics.health < 60 ? "translateY(7px)" : "translateY(0)";
+      dom.plants.style.transformOrigin = "center bottom";
+      dom.plants.style.transition = "transform 500ms ease";
+      document.querySelectorAll(".sensor-hotspot").forEach(hotspot => {
+        hotspot.classList.toggle("inspected", state.inspected.has(hotspot.dataset.sensor));
+      });
+    }
+
+    function inspectSensor(key) {
+      const info = sensorInfo[key];
+      const metrics = state.preview?.metrics || state.metrics;
+      const value = key === "temp" ? `${roundOne(metrics[key]).toFixed(1)}°C` : `${Math.round(metrics[key])}%`;
+      state.inspected.add(key);
+      dom.sensorToast.textContent = `${info.label}: ${value}. ${info.meaning}`;
+      dom.sensorToast.classList.add("show");
+      clearTimeout(inspectSensor.timer);
+      inspectSensor.timer = setTimeout(() => dom.sensorToast.classList.remove("show"), 4300);
+      document.querySelectorAll(".sensor-hotspot").forEach(hotspot => {
+        hotspot.classList.toggle("inspected", state.inspected.has(hotspot.dataset.sensor));
+      });
+    }
+
+    function renderScene() {
+      const stage = getStage();
+      dom.weatherChip.textContent = stage.weather;
+      dom.sceneLabel.textContent = stage.sceneLabel;
+      dom.sceneTitle.textContent = stage.sceneTitle;
+      dom.sceneText.textContent = stage.sceneText;
+      dom.scenePane.dataset.weather = stage.weatherType || "storm";
+      dom.curtainVisual.style.opacity = state.insulationPanels > 0 ? String(Math.min(0.34, state.insulationPanels * 0.08)) : "0";
+      dom.greenhouseStructure.style.filter = state.lampBoost ? "brightness(1.16) saturate(1.1)" : "brightness(1)";
+      dom.greenhouseStructure.style.transition = "filter 320ms ease";
+      renderWeather();
+    }
+
+    function makeWeatherParticles() {
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < 26; i += 1) {
+        const particle = document.createElement("span");
+        particle.className = "weather-particle";
+        particle.style.left = `${Math.random() * 96}%`;
+        particle.style.top = `${Math.random() * 88}%`;
+        particle.style.animationDuration = `${3.5 + Math.random() * 6}s`;
+        particle.style.animationDelay = `${-Math.random() * 7}s`;
+        fragment.appendChild(particle);
+      }
+      dom.weatherFx.appendChild(fragment);
+    }
+
+    function renderWeather() {
+      const weather = dom.scenePane.dataset.weather;
+      document.querySelectorAll(".weather-particle").forEach((particle, index) => {
+        particle.style.display = weather === "fault" && index % 3 !== 0 ? "none" : "block";
+      });
+    }
+
+    function flashScene(type) {
+      dom.stageFlash.className = `stage-flash ${type}`;
+      void dom.stageFlash.offsetWidth;
+      setTimeout(() => { dom.stageFlash.className = "stage-flash"; }, 460);
+    }
+
+    function stageControlDefaults(stage) {
+      const values = {};
+      (stage.controls || []).forEach(control => values[control.key] = 0);
+      values.recycle = false;
+      return values;
+    }
+
+    function renderStage() {
+      const stage = getStage();
+      if (state.harvestTimer) {
+        clearInterval(state.harvestTimer);
+        state.harvestTimer = null;
+      }
+      state.controls = stageControlDefaults(stage);
+      state.preview = null;
+      state.feedbackOpen = false;
+      state.sequence = [];
+      state.insulationPanels = 0;
+      state.lampBoost = false;
+      state.heaterBoost = false;
+      state.powerTokens = { climate: 0, lamps: 0, water: 0 };
+      state.ventZones = [];
+      state.harvestElapsed = 0;
+      dom.stageLabel.textContent = `Sol ${stage.sol} · ${stage.tag}`;
+      dom.solLabel.textContent = `SOL ${String(stage.sol).padStart(2, "0")} / 06`;
+      dom.scenarioTitle.textContent = stage.title;
+      dom.scenarioText.textContent = stage.text;
+      dom.stageGoal.textContent = stage.goal;
+      dom.interactionPrompt.textContent = stage.prompt;
+      dom.guideSteps.innerHTML = stage.guide.map((step, index) => `
+        <li><b>${index + 1}</b><span>${step}</span></li>
+      `).join("");
+      dom.feedbackPanel.classList.remove("show");
+      dom.decisionHint.textContent = "Changes preview live. Run the simulation when your controls are ready.";
+      dom.commitStep.disabled = false;
+      renderScene();
+      renderSolTrack();
+      renderSensors();
+
+      if (stage.type === "panels") renderPanelsStage(stage);
+      if (stage.type === "dispatch") renderDispatchStage(stage);
+      if (stage.type === "repair") renderRepairStage(stage);
+      if (stage.type === "zones") renderZonesStage(stage);
+      if (stage.type === "sequence") renderSequenceStage(stage);
+      if (stage.type === "stabilize") renderStabilizeStage(stage);
+      updateHeaderStatus();
+    }
+
+    function renderControlsStage(stage) {
+      dom.commitStep.textContent = "Run simulation";
+      dom.commitStep.onclick = commitControlsStage;
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Adjust greenhouse controls</h3>
+          <span>Preview updates live</span>
+        </div>
+        <div class="control-grid">
+          ${stage.controls.map(control => `
+            <div class="control-card">
+              <div class="control-top">
+                <label for="control-${control.key}">${control.label}</label>
+                <output class="control-output" id="output-${control.key}" for="control-${control.key}">0%</output>
+              </div>
+              <input class="range" id="control-${control.key}" data-control="${control.key}" type="range" min="${control.min}" max="${control.max}" step="${control.step}" value="0">
+              <div class="control-note"><span>${control.left}</span><span>${control.right}</span></div>
+            </div>
+          `).join("")}
+          <label class="toggle-control">
+            <span class="toggle-copy">
+              <strong>Recycle condensate</strong>
+              <span>Recover water now, but draw power from the battery.</span>
+            </span>
+            <span class="switch">
+              <input id="recycleControl" data-control="recycle" type="checkbox">
+              <span class="switch-track" aria-hidden="true"></span>
+            </span>
+          </label>
+        </div>
+      `;
+
+      dom.stagePanel.querySelectorAll("[data-control]").forEach(input => {
+        input.addEventListener("input", updateControlPreview);
+        input.addEventListener("change", updateControlPreview);
+      });
+      updateControlPreview();
+    }
+
+    function updateControlPreview() {
+      const stage = getStage();
+      stage.controls.forEach(control => {
+        state.controls[control.key] = Number(document.getElementById(`control-${control.key}`).value);
+        document.getElementById(`output-${control.key}`).textContent = `${state.controls[control.key]}%`;
+      });
+      state.controls.recycle = document.getElementById("recycleControl").checked;
+      state.preview = simulatePlan(stage, state.controls);
+      renderSensors(state.preview.metrics);
+      const cost = roundOne(state.metrics.battery - state.preview.metrics.battery);
+      dom.decisionHint.textContent = cost > 0
+        ? `Projected battery use: ${cost}% in this sol. Forecast the full result before running.`
+        : "This plan may restore battery through solar charging.";
+    }
+
+    function renderPanelsStage(stage) {
+      dom.commitStep.textContent = "Run night cycle";
+      dom.commitStep.onclick = commitPanelsStage;
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Build the warm layer</h3>
+          <span>${state.insulationPanels} / 4 panels</span>
+        </div>
+        <div class="panel-builder">
+          ${[0,1,2,3].map(index => `
+            <button class="insulation-panel ${index < state.insulationPanels ? "active" : ""}" type="button" data-panel="${index}" aria-pressed="${index < state.insulationPanels}">
+              ${index < state.insulationPanels ? "SEALED" : `PANEL ${index + 1}`}
+            </button>
+          `).join("")}
+        </div>
+        <div class="mini-switch-row">
+          <button class="big-switch ${state.lampBoost ? "active" : ""}" type="button" data-switch="lamp">Grow lamp: ${state.lampBoost ? "ON" : "OFF"}</button>
+          <button class="big-switch ${state.heaterBoost ? "active" : ""}" type="button" data-switch="heater">Heater: ${state.heaterBoost ? "ON" : "OFF"}</button>
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-panel]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          const index = Number(button.dataset.panel);
+          state.insulationPanels = index < state.insulationPanels ? index : index + 1;
+          renderPanelsStage(stage);
+        });
+      });
+      dom.stagePanel.querySelectorAll("[data-switch]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          if (button.dataset.switch === "lamp") state.lampBoost = !state.lampBoost;
+          if (button.dataset.switch === "heater") state.heaterBoost = !state.heaterBoost;
+          renderPanelsStage(stage);
+          flashScene(state.lampBoost ? "light" : "heat");
+        });
+      });
+      state.preview = simulatePanelPlan(stage);
+      renderSensors(state.preview.metrics);
+      renderScene();
+      dom.decisionHint.textContent = "Every panel keeps in more heat, but blocks some light. Use the lamp only when the crop becomes too dark.";
+    }
+
+    function simulatePanelPlan(stage) {
+      const next = {
+        ...state.metrics,
+        temp: state.metrics.temp + stage.drift.temp + state.insulationPanels * 2,
+        light: state.metrics.light + stage.drift.light - state.insulationPanels * 3,
+        water: state.metrics.water + stage.drift.water,
+        battery: state.metrics.battery + stage.drift.battery - state.insulationPanels * 0.6
+      };
+      if (state.lampBoost) {
+        next.temp += 1;
+        next.light += 42;
+        next.battery -= 9;
+      }
+      if (state.heaterBoost) {
+        next.temp += 4.5;
+        next.battery -= 8;
+      }
+      return { metrics: finalizeMetrics(next, state.metrics.health) };
+    }
+
+    function commitPanelsStage() {
+      if (state.feedbackOpen) return;
+      const stage = getStage();
+      const result = simulatePanelPlan(stage);
+      const summary = `Sealed ${state.insulationPanels} insulation panels; grow lamp ${state.lampBoost ? "on" : "off"}; heater ${state.heaterBoost ? "on" : "off"}`;
+      const evidenceText = `Sol 1: ${summary}. Temperature changed from ${roundOne(state.metrics.temp).toFixed(1)}°C to ${roundOne(result.metrics.temp).toFixed(1)}°C, while light ended at ${Math.round(result.metrics.light)}%.`;
+      commitResult(stage, result.metrics, summary, evidenceText, stage.knowledge);
+    }
+
+    function renderDispatchStage(stage) {
+      dom.commitStep.textContent = "Dispatch energy";
+      dom.commitStep.onclick = commitDispatchStage;
+      const used = Object.values(state.powerTokens).reduce((sum, value) => sum + value, 0);
+      const remaining = 6 - used;
+      const bins = [
+        { key: "climate", title: "Warmth", detail: "+2°C · −3 power" },
+        { key: "lamps", title: "Light", detail: "+7% light · −4 power" },
+        { key: "water", title: "Water", detail: "+4% water · −2 power" }
+      ];
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Energy dispatch</h3>
+          <span>${remaining} units left</span>
+        </div>
+        <div class="token-dispatch">
+          ${bins.map(bin => `
+            <div class="token-bin">
+              <strong>${bin.title}</strong>
+              <span>${bin.detail}</span>
+              <div class="token-pips">
+                ${Array.from({length: state.powerTokens[bin.key]}, () => '<span class="power-pip used"></span>').join("")}
+              </div>
+              <div class="rv-row">
+                <button class="button ghost small" type="button" data-token="${bin.key}" data-delta="-1" ${state.powerTokens[bin.key] === 0 ? "disabled" : ""}>−</button>
+                <button class="button ghost small" type="button" data-token="${bin.key}" data-delta="1" ${remaining === 0 ? "disabled" : ""}>+</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="token-pool">
+          <span>Power pool</span>
+          ${Array.from({length: 6}, (_, index) => `<span class="power-pip ${index < used ? "used" : ""}"></span>`).join("")}
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-token]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          const key = button.dataset.token;
+          const delta = Number(button.dataset.delta);
+          const total = Object.values(state.powerTokens).reduce((sum, value) => sum + value, 0);
+          if (delta > 0 && total >= 6) return;
+          state.powerTokens[key] = Math.max(0, state.powerTokens[key] + delta);
+          renderDispatchStage(stage);
+        });
+      });
+      state.preview = simulateDispatchPlan(stage);
+      renderSensors(state.preview.metrics);
+      dom.decisionHint.textContent = remaining > 0 ? "Place all six power units before dispatching." : "All power units are assigned. Compare the forecast and dispatch.";
+    }
+
+    function simulateDispatchPlan(stage) {
+      const next = {
+        ...state.metrics,
+        temp: state.metrics.temp + stage.drift.temp + state.powerTokens.climate * 2,
+        light: state.metrics.light + stage.drift.light + state.powerTokens.lamps * (hasUpgrade("lights") ? 7.2 : 7),
+        water: state.metrics.water + stage.drift.water + state.powerTokens.water * 4,
+        battery: state.metrics.battery + stage.drift.battery
+          - state.powerTokens.climate * 3
+          - state.powerTokens.lamps * 4
+          - state.powerTokens.water * 2
+      };
+      return { metrics: finalizeMetrics(next, state.metrics.health) };
+    }
+
+    function commitDispatchStage() {
+      if (state.feedbackOpen) return;
+      const used = Object.values(state.powerTokens).reduce((sum, value) => sum + value, 0);
+      if (used < 6) {
+        dom.decisionHint.textContent = `${6 - used} energy units are still unused. Assign them before dispatching.`;
+        return;
+      }
+      const stage = getStage();
+      const result = simulateDispatchPlan(stage);
+      const summary = `${state.powerTokens.climate} to warmth, ${state.powerTokens.lamps} to light, ${state.powerTokens.water} to water`;
+      const evidenceText = `Sol 2: Energy dispatch used ${summary}. Light reached ${Math.round(result.metrics.light)}% and battery ended at ${Math.round(result.metrics.battery)}%.`;
+      commitResult(stage, result.metrics, summary, evidenceText, stage.knowledge);
+    }
+
+    function finalizeMetrics(raw, currentHealth) {
+      const next = { ...raw };
+      const tempStress = next.temp < 18 ? (18 - next.temp) * 2.1 : next.temp > 26 ? (next.temp - 26) * 1.8 : 0;
+      const lightStress = next.light < 55 ? (55 - next.light) * 0.45 : 0;
+      const waterStress = next.water < 35 ? (35 - next.water) * 0.8 : 0;
+      const batteryStress = next.battery < 20 ? (20 - next.battery) * 1.2 : 0;
+      const stress = tempStress + lightStress + waterStress + batteryStress;
+      const healthChange = stress === 0 ? 3 : Math.max(-15, 2 - stress * 0.56);
+      next.temp = roundOne(clamp(next.temp, -10, 45));
+      next.light = Math.round(clamp(next.light, 0, 100));
+      next.water = Math.round(clamp(next.water, 0, 100));
+      next.battery = Math.round(clamp(next.battery, 0, 100));
+      next.health = Math.round(clamp(currentHealth + healthChange, 0, 100));
+      return next;
+    }
+
+    function simulatePlan(stage, controls) {
+      const next = { ...state.metrics };
+      next.temp += stage.drift.temp || 0;
+      next.light += stage.drift.light || 0;
+      next.water += stage.drift.water || 0;
+      next.battery += stage.drift.battery || 0;
+
+      stage.controls.forEach(control => {
+        const value = (controls[control.key] || 0) / 100;
+        let effects = { ...control.effect };
+        if (control.upgrade === "curtain" && hasUpgrade("curtain") && effects.temp > 0) effects.temp *= 1.35;
+        if (control.upgrade === "lights" && hasUpgrade("lights")) {
+          if (effects.light > 0) effects.light *= 1.3;
+          if (effects.battery < 0) effects.battery *= 1.12;
+        }
+        for (const [key, effect] of Object.entries(effects)) {
+          let amount = effect * value;
+          if (key === "water" && amount < 0 && hasUpgrade("recycler")) amount *= 0.65;
+          next[key] += amount;
+        }
+      });
+
+      if (controls.recycle) {
+        next.water += hasUpgrade("recycler") ? 12 : 8;
+        next.battery -= 5;
+      }
+
+      const tempStress = next.temp < 18 ? (18 - next.temp) * 2.1 : next.temp > 26 ? (next.temp - 26) * 1.8 : 0;
+      const lightStress = next.light < 55 ? (55 - next.light) * 0.45 : 0;
+      const waterStress = next.water < 35 ? (35 - next.water) * 0.8 : 0;
+      const batteryStress = next.battery < 20 ? (20 - next.battery) * 1.2 : 0;
+      const stress = tempStress + lightStress + waterStress + batteryStress;
+      const healthChange = stress === 0 ? 3 : Math.max(-15, 2 - stress * 0.56);
+
+      next.temp = roundOne(clamp(next.temp, -10, 45));
+      next.light = Math.round(clamp(next.light, 0, 100));
+      next.water = Math.round(clamp(next.water, 0, 100));
+      next.battery = Math.round(clamp(next.battery, 0, 100));
+      next.health = Math.round(clamp(state.metrics.health + healthChange, 0, 100));
+      return { metrics: next, healthChange: Math.round(healthChange), stress };
+    }
+
+    function commitControlsStage() {
+      if (state.feedbackOpen) return;
+      const stage = getStage();
+      const result = simulatePlan(stage, state.controls);
+      const controlsSummary = stage.controls
+        .map(control => `${control.label} ${state.controls[control.key]}%`)
+        .concat(`recycling ${state.controls.recycle ? "on" : "off"}`)
+        .join(", ");
+      const evidenceText = `Sol ${stage.sol}: ${controlsSummary}. Temperature changed from ${roundOne(state.metrics.temp).toFixed(1)}°C to ${roundOne(result.metrics.temp).toFixed(1)}°C; battery changed from ${Math.round(state.metrics.battery)}% to ${Math.round(result.metrics.battery)}%.`;
+      commitResult(stage, result.metrics, controlsSummary, evidenceText, stage.knowledge);
+    }
+
+    function renderRepairStage(stage) {
+      dom.commitStep.textContent = "Test water loop";
+      dom.commitStep.onclick = runRepair;
+      const valveInfo = [
+        { id: "A", name: "Condenser outlet", closedText: "Water cannot enter the loop" },
+        { id: "B", name: "Bypass line", closedText: "Leak line blocked" },
+        { id: "C", name: "Storage inlet", closedText: "Recycled water cannot reach storage" }
+      ];
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Route the water loop</h3>
+          <span>3 valves</span>
+        </div>
+        <div class="pipeline" id="pipeline">
+          <div class="pipe-flow"><span></span></div>
+          <div class="valve-grid">
+            ${valveInfo.map(valve => {
+              const open = state.repairValves[valve.id];
+              return `
+                <button class="valve ${open ? "open" : ""}" type="button" data-valve="${valve.id}" aria-pressed="${open}">
+                  <strong>${valve.id}</strong>
+                  <span>${valve.name}</span>
+                  <span>${open ? "OPEN" : "CLOSED"}</span>
+                </button>
+              `;
+            }).join("")}
+          </div>
+          <div class="pipeline-status" id="pipelineStatus">Open the correct path, close the leak, and test the loop.</div>
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-valve]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          const id = button.dataset.valve;
+          state.repairValves[id] = !state.repairValves[id];
+          renderRepairStage(stage);
+        });
+      });
+      dom.decisionHint.textContent = "Read the labels and route condensation from the condenser to storage without using the leak line.";
+    }
+
+    function runRepair() {
+      if (state.feedbackOpen) return;
+      const valves = state.repairValves;
+      const correct = valves.A && !valves.B && valves.C;
+      if (!correct) {
+        const status = document.getElementById("pipelineStatus");
+        const pipeline = document.getElementById("pipeline");
+        status.textContent = "Flow test failed. Check whether the bypass leak is still open and whether both ends of the recycling route are connected.";
+        status.classList.add("error");
+        pipeline.classList.add("failed");
+        clearTimeout(runRepair.timer);
+        runRepair.timer = setTimeout(() => pipeline.classList.remove("failed"), 700);
+        return;
+      }
+
+      const stage = getStage();
+      const before = { ...state.metrics };
+      let next = {
+        ...state.metrics,
+        temp: roundOne(state.metrics.temp - 1),
+        water: Math.round(clamp(state.metrics.water + (hasUpgrade("recycler") ? 16 : 12), 0, 100)),
+        battery: Math.round(clamp(state.metrics.battery - 2, 0, 100))
+      };
+      const stress = next.temp < 18 ? (18-next.temp)*2.1 : next.temp>26 ? (next.temp-26)*1.8 : 0;
+      next.health = Math.round(clamp(state.metrics.health + (stress === 0 ? 2 : -2), 0, 100));
+      const summary = "Opened condenser outlet, closed bypass leak, opened storage inlet";
+      const evidenceText = `Sol 3: Recycling restored water from ${Math.round(before.water)}% to ${next.water}% while using ${before.battery - next.battery}% battery.`;
+      commitResult(stage, next, summary, evidenceText, stage.knowledge);
+    }
+
+    function renderZonesStage(stage) {
+      dom.commitStep.textContent = "Vent selected zones";
+      dom.commitStep.onclick = commitZonesStage;
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Find the heat pockets</h3>
+          <span>${state.ventZones.length} / 2 vents open</span>
+        </div>
+        <div class="zone-grid">
+          ${stage.zones.map(zone => `
+            <button class="zone-card ${state.ventZones.includes(zone.id) ? "selected" : ""}" type="button" data-zone="${zone.id}" aria-pressed="${state.ventZones.includes(zone.id)}">
+              <strong>${zone.temp}°C</strong>
+              <span>${zone.name}</span>
+              <span>${state.ventZones.includes(zone.id) ? "VENT OPEN" : "TAP TO INSPECT & VENT"}</span>
+            </button>
+          `).join("")}
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-zone]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          const id = button.dataset.zone;
+          if (state.ventZones.includes(id)) {
+            state.ventZones = state.ventZones.filter(item => item !== id);
+          } else if (state.ventZones.length < 2) {
+            state.ventZones.push(id);
+            flashScene("heat");
+          }
+          renderZonesStage(stage);
+        });
+      });
+      const selectedZones = stage.zones.filter(zone => state.ventZones.includes(zone.id));
+      const cooling = selectedZones.reduce((sum, zone) => sum + zone.cooling, 0);
+      const next = {
+        ...state.metrics,
+        temp: state.metrics.temp + stage.drift.temp - cooling,
+        light: state.metrics.light + stage.drift.light,
+        water: state.metrics.water + stage.drift.water - selectedZones.length * 1.5,
+        battery: state.metrics.battery + stage.drift.battery - selectedZones.length * 0.8
+      };
+      state.preview = { metrics: finalizeMetrics(next, state.metrics.health) };
+      renderSensors(state.preview.metrics);
+      dom.decisionHint.textContent = state.ventZones.length === 2
+        ? "Two vents selected. Run cooling and check the new forecast."
+        : "Read the zone temperatures. Select the two hottest zones.";
+    }
+
+    function commitZonesStage() {
+      if (state.feedbackOpen) return;
+      if (state.ventZones.length !== 2) {
+        dom.decisionHint.textContent = "Select exactly two greenhouse zones to vent.";
+        return;
+      }
+      const stage = getStage();
+      const selected = stage.zones.filter(zone => state.ventZones.includes(zone.id));
+      const summary = `Vented ${selected.map(zone => zone.name).join(" and ")}`;
+      const evidenceText = `Sol 4: Opened two vents and reduced canopy temperature from ${roundOne(state.metrics.temp).toFixed(1)}°C toward the target range; water fell by ${roundOne(selected.length * 1.5)}%.`;
+      const extra = selected.every(zone => zone.temp >= 35)
+        ? stage.knowledge
+        : "You vented cooler zones while warmer pockets stayed sealed. Compare the zone readings before choosing next time.";
+      commitResult(stage, state.preview.metrics, summary, evidenceText, extra);
+    }
+
+    function renderStabilizeStage(stage) {
+      dom.commitStep.textContent = "Start 12-second harvest window";
+      dom.commitStep.disabled = false;
+      dom.commitStep.onclick = startHarvestWindow;
+      state.preview = {
+        metrics: finalizeMetrics({
+          ...state.metrics,
+          temp: state.metrics.temp + stage.drift.temp,
+          light: state.metrics.light + stage.drift.light,
+          water: state.metrics.water + stage.drift.water,
+          battery: state.metrics.battery + stage.drift.battery
+        }, state.metrics.health)
+      };
+      renderSensors(state.preview.metrics);
+      dom.stagePanel.innerHTML = `
+        <div class="harvest-game">
+          <div class="harvest-timer">
+            <span>Harvest stability window</span>
+            <strong id="harvestSeconds">12.0 s</strong>
+          </div>
+          <div class="harvest-track"><div class="harvest-progress" id="harvestProgress"></div></div>
+          <div class="boost-grid">
+            <button class="boost-button" type="button" data-boost="temp" disabled><b>+Warm</b>Heater pulse</button>
+            <button class="boost-button" type="button" data-boost="light" disabled><b>+Light</b>Lamp pulse</button>
+            <button class="boost-button" type="button" data-boost="water" disabled><b>+Water</b>Recycle pulse</button>
+          </div>
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-boost]").forEach(button => {
+        button.addEventListener("click", () => boostHarvest(button.dataset.boost));
+      });
+      dom.decisionHint.textContent = "Press start, then tap a boost whenever a reading begins to fall.";
+    }
+
+    function startHarvestWindow() {
+      if (state.harvestTimer) return;
+      const stage = getStage();
+      state.metrics = { ...state.preview.metrics };
+      state.harvestElapsed = 0;
+      dom.commitStep.disabled = true;
+      renderSensors();
+      dom.stagePanel.querySelectorAll("[data-boost]").forEach(button => { button.disabled = false; });
+      dom.decisionHint.textContent = "Keep warmth, light, and water inside their target ranges. Every boost uses a little battery.";
+      const totalTicks = 17;
+      state.harvestTimer = setInterval(() => {
+        state.harvestElapsed += 1;
+        state.metrics.temp = roundOne(state.metrics.temp - 0.55);
+        state.metrics.light = Math.round(clamp(state.metrics.light - 1.4, 0, 100));
+        state.metrics.water = Math.round(clamp(state.metrics.water - 0.6, 0, 100));
+        if (state.metrics.temp < 18 || state.metrics.temp > 26 || state.metrics.light < 55 || state.metrics.water < 35) {
+          state.metrics.health = Math.max(0, state.metrics.health - 0.35);
+        }
+        const secondsLeft = Math.max(0, 12 - state.harvestElapsed * 0.7);
+        const secondsEl = document.getElementById("harvestSeconds");
+        const progressEl = document.getElementById("harvestProgress");
+        if (secondsEl) secondsEl.textContent = `${secondsLeft.toFixed(1)} s`;
+        if (progressEl) progressEl.style.width = `${(state.harvestElapsed / totalTicks) * 100}%`;
+        renderSensors();
+        if (state.harvestElapsed >= totalTicks) finishHarvestWindow();
+      }, 700);
+    }
+
+    function boostHarvest(type) {
+      if (!state.harvestTimer || state.feedbackOpen) return;
+      if (type === "temp") {
+        state.metrics.temp = roundOne(state.metrics.temp + 1.6);
+        flashScene("heat");
+      }
+      if (type === "light") {
+        state.metrics.light = Math.round(clamp(state.metrics.light + 7, 0, 100));
+        flashScene("light");
+      }
+      if (type === "water") {
+        state.metrics.water = Math.round(clamp(state.metrics.water + 5, 0, 100));
+        flashScene("water");
+      }
+      state.metrics.battery = Math.round(clamp(state.metrics.battery - 1.2, 0, 100));
+      renderSensors();
+    }
+
+    function finishHarvestWindow() {
+      if (!state.harvestTimer) return;
+      clearInterval(state.harvestTimer);
+      state.harvestTimer = null;
+      const stage = getStage();
+      state.metrics.health = Math.round(clamp(state.metrics.health, 0, 100));
+      const summary = "Stabilised the greenhouse for the final 12-second harvest window";
+      const evidenceText = `Sol 6: After the harvest window, temperature was ${roundOne(state.metrics.temp).toFixed(1)}°C, light was ${Math.round(state.metrics.light)}%, water was ${Math.round(state.metrics.water)}%, and battery was ${Math.round(state.metrics.battery)}%.`;
+      commitResult(stage, { ...state.metrics }, summary, evidenceText, stage.knowledge);
+      dom.stagePanel.querySelectorAll("[data-boost]").forEach(button => { button.disabled = true; });
+      dom.commitStep.disabled = true;
+      dom.commitStep.textContent = "Harvest window complete";
+    }
+
+    function renderSequenceStage(stage) {
+      dom.commitStep.textContent = "Run emergency sequence";
+      dom.commitStep.onclick = runSequence;
+      dom.decisionHint.textContent = "Select all four actions in the order that protects the power system and the crop.";
+      dom.stagePanel.innerHTML = `
+        <div class="stage-panel-head">
+          <h3>Order the emergency response</h3>
+          <button class="button ghost small" id="clearSequence" type="button">Clear order</button>
+        </div>
+        <div class="sequence-grid">
+          ${stage.sequence.map(item => `
+            <button class="sequence-card ${state.sequence.includes(item.id) ? "used" : ""}" type="button" data-sequence="${item.id}" ${state.sequence.includes(item.id) ? "disabled" : ""}>
+              <span class="sequence-index">+</span>
+              <span><strong>${item.title}</strong><span>${item.note}</span></span>
+            </button>
+          `).join("")}
+        </div>
+        <div class="sequence-rack" id="sequenceRack">
+          ${state.sequence.length ? state.sequence.map((id, index) => {
+            const item = stage.sequence.find(entry => entry.id === id);
+            return `<span class="sequence-chip" title="${item.title}">${index + 1}</span>`;
+          }).join("") : "Your selected order will appear here."}
+        </div>
+      `;
+      dom.stagePanel.querySelectorAll("[data-sequence]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (state.feedbackOpen) return;
+          if (!state.sequence.includes(button.dataset.sequence)) state.sequence.push(button.dataset.sequence);
+          renderSequenceStage(stage);
+        });
+      });
+      document.getElementById("clearSequence").addEventListener("click", () => {
+        if (state.feedbackOpen) return;
+        state.sequence = [];
+        renderSequenceStage(stage);
+      });
+    }
+
+    function runSequence() {
+      if (state.feedbackOpen) return;
+      const stage = getStage();
+      if (state.sequence.length !== stage.correctOrder.length) {
+        dom.decisionHint.textContent = "Select all four emergency actions before running the sequence.";
+        return;
+      }
+      if (state.sequence.join(",") !== stage.correctOrder.join(",")) {
+        dom.decisionHint.textContent = "The sequence is unsafe. Diagnose and isolate the fault before restoring backup power.";
+        dom.stagePanel.classList.add("shake");
+        setTimeout(() => dom.stagePanel.classList.remove("shake"), 500);
+        return;
+      }
+      const before = { ...state.metrics };
+      const next = {
+        ...state.metrics,
+        battery: Math.round(clamp(state.metrics.battery + 5, 0, 100)),
+        health: Math.round(clamp(state.metrics.health + 1, 0, 100))
+      };
+      const summary = "Confirmed alert → isolated fault → connected backup → restarted controls";
+      const evidenceText = `Sol 5: Safe sequencing restored control and increased battery from ${Math.round(before.battery)}% to ${next.battery}%.`;
+      commitResult(stage, next, summary, evidenceText, stage.knowledge);
+    }
+
+    function commitResult(stage, nextMetrics, summary, evidenceText, knowledge) {
+      const before = { ...state.metrics };
+      state.metrics = nextMetrics;
+      state.history.push({
+        sol: stage.sol,
+        title: stage.title,
+        summary,
+        evidence: evidenceText,
+        before,
+        after: { ...nextMetrics }
+      });
+      state.feedbackOpen = true;
+      state.preview = null;
+      dom.commitStep.disabled = true;
+      dom.decisionHint.textContent = "Simulation complete. Read the evidence and explanation before continuing.";
+      dom.feedbackTitle.textContent = feedbackTitle(stage, nextMetrics);
+      dom.feedbackText.textContent = stage.knowledge;
+      dom.knowledgeTag.textContent = `Knowledge unlocked · ${stage.tag}`;
+      dom.nextStage.textContent = state.stageIndex < stages.length - 1 ? "Continue to next sol" : "Build evidence trail";
+      const deltas = [
+        ["Temp", nextMetrics.temp - before.temp, "°C"],
+        ["Light", nextMetrics.light - before.light, "%"],
+        ["Water", nextMetrics.water - before.water, "%"],
+        ["Battery", nextMetrics.battery - before.battery, "%"],
+        ["Crop health", nextMetrics.health - before.health, "%"]
+      ];
+      dom.deltaRow.innerHTML = deltas.map(([label, value, unit]) => {
+        const rounded = unit === "°C" ? roundOne(value) : Math.round(value);
+        if (rounded === 0) return "";
+        return `<span class="delta ${rounded > 0 ? "positive" : "negative"}">${label} ${rounded > 0 ? "+" : ""}${rounded}${unit}</span>`;
+      }).join("");
+      renderSensors();
+      dom.feedbackPanel.classList.add("show");
+      dom.feedbackPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function feedbackTitle(stage, metrics) {
+      if (metrics.health < 60) return "The crop is under stress.";
+      if (metrics.temp < 18) return "The canopy is still too cold.";
+      if (metrics.temp > 26) return "The canopy is still too warm.";
+      if (metrics.light < 55) return "The crop has too little usable light.";
+      if (metrics.water < 35) return "The water reserve is running low.";
+      if (metrics.battery < 20) return "The battery reserve is critically low.";
+      return "The greenhouse is back within its operating range.";
+    }
+
+    function continueAfterFeedback() {
+      if (state.stageIndex < stages.length - 1) {
+        state.stageIndex += 1;
+        renderStage();
+        document.querySelector(".console-scroll").scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        buildEvidenceList();
+        showView("evidence");
+      }
+    }
+
+    function coreResult() {
+      const m = state.metrics;
+      const corePass = m.temp >= 18 && m.temp <= 26 && m.health >= 60 && m.water >= 35 && m.battery >= 20;
+      const fullBalance = corePass && m.light >= 55;
+      return { corePass, fullBalance };
+    }
+
+    function buildEvidenceList() {
+      state.evidence = state.history.map((record, index) => ({
+        id: `e${index}`,
+        sol: record.sol,
+        title: record.title,
+        text: record.evidence
+      }));
+      state.evidence.push({
+        id: "final",
+        sol: 6,
+        title: "Final harvest reading",
+        text: `Final crop health was ${Math.round(state.metrics.health)}% with ${roundOne(state.metrics.temp).toFixed(1)}°C canopy temperature, ${Math.round(state.metrics.light)}% light, ${Math.round(state.metrics.water)}% water, and ${Math.round(state.metrics.battery)}% battery.`
+      });
+      state.selectedEvidence = [];
+      state.claim = "";
+      renderEvidenceBoard();
+    }
+
+    function renderEvidenceBoard() {
+      dom.evidenceList.innerHTML = state.evidence.map(item => `
+        <button class="evidence-card ${state.selectedEvidence.includes(item.id) ? "picked" : ""}" type="button" data-evidence="${item.id}" draggable="true" ${state.selectedEvidence.includes(item.id) ? "disabled" : ""}>
+          <span class="evidence-sol">S${item.sol}</span>
+          <span class="evidence-copy"><strong>${item.title}</strong><span>${item.text}</span></span>
+          <span class="add-evidence">${state.selectedEvidence.includes(item.id) ? "Added ✓" : "Add +"}</span>
+        </button>
+      `).join("");
+
+      dom.evidenceSlots.innerHTML = [0,1].map(index => {
+        const id = state.selectedEvidence[index];
+        const item = state.evidence.find(entry => entry.id === id);
+        return `
+          <div class="evidence-slot ${item ? "filled" : ""}" data-evidence-slot="${index}">
+            <div class="slot-title">
+              <span>Evidence ${index + 1}</span>
+              ${item ? `<button class="remove-evidence" type="button" data-remove="${item.id}" aria-label="Remove evidence">×</button>` : ""}
+            </div>
+            ${item ? item.text : "Drop an evidence card here."}
+          </div>
+        `;
+      }).join("");
+
+      dom.claimInput.value = state.claim;
+      const claimWords = state.claim.trim() ? state.claim.trim().split(/\s+/).length : 0;
+      dom.builderChecks.innerHTML = `
+        <span class="${state.selectedEvidence.length >= 2 ? "met" : ""}">${state.selectedEvidence.length >= 2 ? "✓" : "○"} At least two pieces of evidence</span>
+        <span class="${claimWords >= 12 ? "met" : ""}">${claimWords >= 12 ? "✓" : "○"} A science explanation of at least 12 words</span>
+      `;
+      dom.generateReport.disabled = !(state.selectedEvidence.length >= 2 && claimWords >= 12);
+      attachEvidenceEvents();
+    }
+
+    function addEvidence(id) {
+      if (state.selectedEvidence.includes(id) || state.selectedEvidence.length >= 2) return;
+      state.selectedEvidence.push(id);
+      renderEvidenceBoard();
+    }
+
+    function attachEvidenceEvents() {
+      dom.evidenceList.querySelectorAll("[data-evidence]").forEach(card => {
+        card.addEventListener("click", () => addEvidence(card.dataset.evidence));
+        card.addEventListener("dragstart", event => {
+          event.dataTransfer.setData("text/plain", card.dataset.evidence);
+          event.dataTransfer.effectAllowed = "copy";
+        });
+      });
+      dom.evidenceSlots.querySelectorAll("[data-evidence-slot]").forEach(slot => {
+        slot.addEventListener("dragover", event => {
+          event.preventDefault();
+          slot.classList.add("dragover");
+        });
+        slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
+        slot.addEventListener("drop", event => {
+          event.preventDefault();
+          slot.classList.remove("dragover");
+          addEvidence(event.dataTransfer.getData("text/plain"));
+        });
+      });
+      dom.evidenceSlots.querySelectorAll("[data-remove]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.selectedEvidence = state.selectedEvidence.filter(id => id !== button.dataset.remove);
+          renderEvidenceBoard();
+        });
+      });
+    }
+
+    function generateMissionReport() {
+      state.claim = dom.claimInput.value.trim();
+      const words = state.claim.split(/\s+/).filter(Boolean).length;
+      if (state.selectedEvidence.length < 2 || words < 12) return;
+      renderReport();
+      showView("debrief");
+    }
+
+    function renderReport() {
+      const result = coreResult();
+      const m = state.metrics;
+      if (result.fullBalance) {
+        dom.missionOutcome.textContent = "Full system balance";
+        dom.missionOutcome.className = "outcome-badge";
+        dom.reportSummary.textContent = "The harvest is secure. Your final greenhouse met every operating target and your evidence explains how the systems affected one another.";
+      } else if (result.corePass) {
+        dom.missionOutcome.textContent = "Harvest protected";
+        dom.missionOutcome.className = "outcome-badge partial";
+        dom.reportSummary.textContent = "The crop survived, but one system remained below its full target. Your report makes the remaining compromise visible.";
+      } else {
+        dom.missionOutcome.textContent = "Crop at risk";
+        dom.missionOutcome.className = "outcome-badge fail";
+        dom.reportSummary.textContent = "The final greenhouse did not meet every survival target. The decision timeline shows where a different trade-off could help.";
+      }
+
+      const items = [
+        ["Canopy temperature", `${roundOne(m.temp).toFixed(1)}°C`, m.temp >= 18 && m.temp <= 26 ? "Target met · 18–26°C" : "Outside target · 18–26°C"],
+        ["Usable light", `${Math.round(m.light)}%`, m.light >= 55 ? "Target met · ≥55%" : "Below target · ≥55%"],
+        ["Water reserve", `${Math.round(m.water)}%`, m.water >= 35 ? "Safe reserve · ≥35%" : "Low reserve · ≥35%"],
+        ["Battery reserve", `${Math.round(m.battery)}%`, m.battery >= 20 ? "Safe reserve · ≥20%" : "Low reserve · ≥20%"],
+        ["Crop health", `${Math.round(m.health)}%`, m.health >= 60 ? "Target met · ≥60%" : "Below target · ≥60%"]
+      ];
+      dom.finalMetrics.innerHTML = items.map(([label, value, note]) => `
+        <div class="final-metric"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>
+      `).join("");
+
+      dom.timeline.innerHTML = state.history.map(record => `
+        <div class="timeline-item">
+          <div class="timeline-sol">S${record.sol}</div>
+          <div class="timeline-copy"><strong>${record.title}</strong><p>${record.summary}</p></div>
+        </div>
+      `).join("");
+
+      dom.submittedClaim.textContent = state.claim;
+      const chosen = state.selectedEvidence.map(id => state.evidence.find(item => item.id === id)).filter(Boolean);
+      dom.submittedEvidence.innerHTML = `
+        <div class="evidence-slots">
+          ${chosen.map((item, index) => `<div class="evidence-slot filled"><div class="slot-title">Evidence ${index + 1}</div>${item.text}</div>`).join("")}
+        </div>
+      `;
+    }
+
+    function startNewGame() {
+      selectedUpgrades = [];
+      state.loaded = false;
+      renderCargo();
+      showView("loadout");
+    }
+
+    document.getElementById("startLoadout").addEventListener("click", startNewGame);
+    document.getElementById("launchMission").addEventListener("click", launchMission);
+    document.getElementById("commitStep").addEventListener("click", () => {});
+    dom.nextStage.addEventListener("click", continueAfterFeedback);
+    dom.claimInput.addEventListener("input", event => {
+      state.claim = event.target.value;
+      renderEvidenceBoard();
+    });
+    dom.generateReport.addEventListener("click", generateMissionReport);
+    document.getElementById("replayMission").addEventListener("click", startNewGame);
+    document.getElementById("printReport").addEventListener("click", () => window.print());
+
+    document.querySelectorAll(".sensor-hotspot").forEach(hotspot => {
+      hotspot.addEventListener("click", () => inspectSensor(hotspot.dataset.sensor));
+    });
+
+    document.getElementById("openAbout").addEventListener("click", () => {
+      aboutReturnView = document.querySelector(".view.active")?.id.replace("view-", "") || "intro";
+      showView("about");
+    });
+    document.getElementById("introAbout").addEventListener("click", () => {
+      aboutReturnView = "intro";
+      showView("about");
+    });
+    document.getElementById("reportAbout").addEventListener("click", () => {
+      aboutReturnView = "debrief";
+      showView("about");
+    });
+    document.getElementById("aboutBack").addEventListener("click", () => showView(aboutReturnView));
+    document.getElementById("brandHome").addEventListener("click", () => showView("intro"));
+
+    makeWeatherParticles();
+    renderCargo();
+    renderSensors();
+  </script>
+</body>
+</html>
